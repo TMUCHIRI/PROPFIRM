@@ -34,6 +34,24 @@ export class AdminService {
         return result.recordset[0];
     }
 
+    async getTotalTraders() {
+        const pool = await poolPromise;
+        const result = await pool.request().query('SELECT COUNT(DISTINCT userId) as count FROM Accounts WHERE type = \'live\' AND isActive = 1');
+        return result.recordset[0].count;
+    }
+    
+    async getTotalTrades() {
+        const pool = await poolPromise;
+        const result = await pool.request().query('SELECT COUNT(*) as count FROM TradeTransactions');
+        return result.recordset[0].count;
+    }
+    
+    async getTotalLiveBalance() {
+        const pool = await poolPromise;
+        const result = await pool.request().query('SELECT SUM(tradingBalance) as total FROM PropTransactions');
+        return result.recordset[0].total || 0;
+    }
+
     async toggleAccountStatus(accountId: string, isActive: boolean) {
         const { error } = Joi.object({
             accountId: Joi.string().uuid().required(),

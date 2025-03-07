@@ -8,7 +8,7 @@ const app = express();
 
 app.use(cors({
     origin: 'http://127.0.0.1:5500', // Your frontend origin
-    methods: ['GET', 'POST', 'PUT'], // Explicitly allow PUT
+    methods: ['GET', 'POST', 'PUT', 'PATCH'], // Explicitly allow PUT
     allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 

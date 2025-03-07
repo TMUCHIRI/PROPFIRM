@@ -32,8 +32,10 @@ export const getAllTrades = async (req: Request, res: Response, next: NextFuncti
 
 export const getDashboardStats = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const stats = await adminService.getDashboardStats();
-        res.json({ stats });
+        const totalTraders = await adminService.getTotalTraders(); // Live account users
+        const activeTrades = await adminService.getTotalTrades();
+        const totalLiveBalance = await adminService.getTotalLiveBalance();
+        res.json({ totalTraders, activeTrades, totalLiveBalance });
     } catch (error) {
         next(error);
     }

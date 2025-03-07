@@ -104,7 +104,7 @@
             width: 400px;
         }
         .modal-content input, .modal-content textarea {
-            width: 100%;
+            width: 95%;
             padding: 8px;
             margin: 10px 0;
         }
@@ -310,7 +310,7 @@
                     const amount = parseFloat(tradeAmount.value);
                     const description = tradeDescription.value;
                     if (amount >= 0 || !description) throw new Error('Amount must be negative and description required');
-                    await client.simulateTrade(accountId, amount, description);
+                    await client.simulateTrade(accountId, transactionId, amount, description);
                     tradeMessage.className = 'modal-success';
                     tradeMessage.textContent = 'Trade simulated successfully! Updating balance...';
                     setTimeout(() => {

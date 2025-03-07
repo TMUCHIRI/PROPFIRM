@@ -154,7 +154,7 @@
             width: 400px;
         }
         .modal-content input {
-            width: 100%;
+            width: 95%;
             padding: 8px;
             margin: 10px 0;
         }
@@ -164,6 +164,23 @@
         .modal-error {
             color: red;
             text-align: center;
+        }
+        .modal-result {
+            text-align: center;
+            margin: 10px 0;
+        }
+        .modal-result.success {
+            color: green;
+        }
+        .modal-result.error {
+            color: red;
+        }
+        .btn-confirm {
+            background-color: #007bff;
+            color: #fff;
+        }
+        .btn-confirm:hover {
+            background-color: #0056b3;
         }
     </style>
 </head>
@@ -297,6 +314,40 @@
                 <button class="btn btn-danger" id="cancelPropBtn">Cancel</button>
             </div>
         </div>
+
+                <!-- Modal for Toggling Account Status -->
+        <div id="toggleAccountModal" class="modal">
+            <div class="modal-content">
+                <h2 id="toggleAccountModalTitle">Confirm Action</h2>
+                <p id="toggleAccountModalMessage">Are you sure you want to proceed?</p>
+                <p id="toggleAccountModalResult" class="modal-result"></p>
+                <button class="btn btn-confirm" id="confirmToggleAccountBtn">Confirm</button>
+                <button class="btn btn-danger" id="cancelToggleAccountBtn">Cancel</button>
+            </div>
+        </div>
+
+        <!-- Modal for Changing User Role -->
+        <div id="changeRoleModal" class="modal">
+            <div class="modal-content">
+                <h2 id="changeRoleModalTitle">Confirm Role Change</h2>
+                <p id="changeRoleModalMessage">Are you sure you want to proceed?</p>
+                <p id="changeRoleModalResult" class="modal-result"></p>
+                <button class="btn btn-confirm" id="confirmChangeRoleBtn">Confirm</button>
+                <button class="btn btn-danger" id="cancelChangeRoleBtn">Cancel</button>
+            </div>
+        </div>
+
+        <!-- Modal for Updating Prop Account -->
+        <div id="updatePropModal" class="modal">
+            <div class="modal-content">
+                <h2 id="updatePropModalTitle">Update Prop Account</h2>
+                <input type="text" id="updatePropTitle" placeholder="Title (e.g., Beginner)">
+                <input type="number" id="updatePropTradingBalance" placeholder="Trading Balance (e.g., 5000)">
+                <input type="number" id="updatePropChallengeFee" placeholder="Challenge Fee (e.g., 49)">
+                <p id="updatePropModalError" class="modal-error"></p>
+                <button class="btn" id="saveUpdatePropBtn">Save</button>
+                <button class="btn btn-danger" id="cancelUpdatePropBtn">Cancel</button>
+            </div>
     </div>
 
         <!-- Settings Section -->
@@ -353,43 +404,55 @@
         // Fetch and display overview stats
         async function loadOverview() {
             try {
-                const { stats } = await client.fetchDashboardStats();
-                document.getElementById('total-traders').textContent = stats.totalActiveUsers;
-                document.getElementById('active-trades').textContent = stats.totalTrades;
+                const stats = await client.fetchDashboardStats();
+                document.getElementById('total-traders').textContent = stats.totalTraders;
+                document.getElementById('active-trades').textContent = stats.activeTrades;
                 document.getElementById('total-balance').textContent = `$${stats.totalLiveBalance.toLocaleString()}`;
             } catch (error) {
                 console.error('Error fetching stats:', error.message);
+                document.getElementById('total-traders').textContent = 'Error';
+                document.getElementById('active-trades').textContent = 'Error';
+                document.getElementById('total-balance').textContent = 'Error';
             }
-        }
+}
 
         // Fetch and display traders (users with live accounts)
         async function loadTraders() {
-    try {
-        const { accounts } = await client.fetchAllAccounts();
-        const liveAccounts = accounts.filter(acc => acc.type === 'live');
-        const { users } = await client.fetchAllUsers(); // Changed to destructure users array
-        const tradersTableBody = document.getElementById('traders-table-body');
-        tradersTableBody.innerHTML = liveAccounts.length ? '' : '<tr><td colspan="6" class="no-data">No live accounts</td></tr>';
+        try {
+            const { accounts } = await client.fetchAllAccounts();
+            const { users } = await client.fetchAllUsers();
+            const liveAccounts = accounts.filter(acc => acc.type === 'live');
+        
+        // Deduplicate by userId
+            const uniqueTraders = new Map();
+            liveAccounts.forEach(account => {
+                if (!uniqueTraders.has(account.userId)) {
+                    uniqueTraders.set(account.userId, account);
+                }
+            });
 
-        liveAccounts.forEach(account => {
-            const user = users.find(u => u.id === account.userId); // Now works on the array
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${account.userId}</td>
-                <td>${user ? user.username : 'Unknown'}</td>
-                <td>${user ? user.email : 'Unknown'}</td>
-                <td>${user ? (user.isActive ? 'Active' : 'Inactive') : 'Unknown'}</td>
-                <td>${account.isActive ? 'Active' : 'Inactive'}</td>
-                <td>
-                    <button class="btn ${account.isActive ? 'btn-danger' : 'btn-success'}" 
-                            onclick="toggleAccount('${account.id}', ${!account.isActive})">
-                        ${account.isActive ? 'Deactivate' : 'Activate'}
-                    </button>
-                </td>
-            `;
-            tradersTableBody.appendChild(row);
-        });
-    } catch (error) {
+            const tradersTableBody = document.getElementById('traders-table-body');
+            tradersTableBody.innerHTML = uniqueTraders.size ? '' : '<tr><td colspan="6" class="no-data">No live accounts</td></tr>';
+
+            uniqueTraders.forEach((account, userId) => {
+                const user = users.find(u => u.id === userId);
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${userId}</td>
+                    <td>${user ? user.username : 'Unknown'}</td>
+                    <td>${user ? user.email : 'Unknown'}</td>
+                    <td>${user ? (user.isActive ? 'Active' : 'Inactive') : 'Unknown'}</td>
+                    <td>${account.isActive ? 'Active' : 'Inactive'}</td>
+                    <td>
+                        <button class="btn ${account.isActive ? 'btn-danger' : 'btn-success'}" 
+                                onclick="toggleAccount('${account.id}', ${!account.isActive})">
+                            ${account.isActive ? 'Deactivate' : 'Activate'}
+                        </button>
+                    </td>
+                `;
+                tradersTableBody.appendChild(row);
+            });
+    }   catch (error) {
         console.error('Error fetching traders:', error.message);
         document.getElementById('traders-table-body').innerHTML = `<tr><td colspan="6" style="color: red;">${error.message}</td></tr>`;
     }
@@ -427,10 +490,11 @@
         async function loadUsers() {
             try {
                 const { users } = await client.fetchAllUsers();
+                const nonAdminUsers = users.filter(user => user.role !== 'admin');
                 const usersTableBody = document.getElementById('users-table-body');
                 usersTableBody.innerHTML = '';
 
-                users.forEach(user => {
+                nonAdminUsers.forEach(user => {
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td>${user.id}</td>
@@ -453,25 +517,75 @@
 
         // Toggle account status
         async function toggleAccount(accountId, isActive) {
-            try {
-                const result = await client.toggleAccountStatus(accountId, isActive);
-                alert(result.message);
-                loadTraders(); // Refresh traders table
-            } catch (error) {
-                alert('Error toggling account: ' + error.message);
-            }
+    const modal = document.getElementById('toggleAccountModal');
+    const title = document.getElementById('toggleAccountModalTitle');
+    const message = document.getElementById('toggleAccountModalMessage');
+    const result = document.getElementById('toggleAccountModalResult');
+    const confirmBtn = document.getElementById('confirmToggleAccountBtn');
+    const cancelBtn = document.getElementById('cancelToggleAccountBtn');
+
+    title.textContent = `Confirm ${isActive ? 'Activation' : 'Deactivation'}`;
+    message.textContent = `Are you sure you want to ${isActive ? 'activate' : 'deactivate'} this live account?`;
+    result.textContent = '';
+    result.className = 'modal-result';
+    modal.style.display = 'flex';
+
+    confirmBtn.onclick = async () => {
+        try {
+            const response = await client.toggleAccountStatus(accountId, isActive);
+            result.className = 'modal-result success';
+            result.textContent = response.message;
+            confirmBtn.style.display = 'none'; // Hide confirm button after success
+            setTimeout(() => {
+                modal.style.display = 'none';
+                loadTraders();
+            }, 2000);
+        } catch (error) {
+            result.className = 'modal-result error';
+            result.textContent = error.message || 'Error toggling account';
         }
+    };
+
+    cancelBtn.onclick = () => {
+        modal.style.display = 'none';
+    };
+}
 
         // Change user role
         async function changeRole(userId, role) {
-            try {
-                const result = await client.changeUserRole(userId, role);
-                alert(result.message);
-                loadUsers(); // Refresh users table
-            } catch (error) {
-                alert('Error changing role: ' + error.message);
-            }
+    const modal = document.getElementById('changeRoleModal');
+    const title = document.getElementById('changeRoleModalTitle');
+    const message = document.getElementById('changeRoleModalMessage');
+    const result = document.getElementById('changeRoleModalResult');
+    const confirmBtn = document.getElementById('confirmChangeRoleBtn');
+    const cancelBtn = document.getElementById('cancelChangeRoleBtn');
+
+    title.textContent = `Confirm Role Change to ${role}`;
+    message.textContent = `Are you sure you want to change this user's role to ${role}?`;
+    result.textContent = '';
+    result.className = 'modal-result';
+    modal.style.display = 'flex';
+
+    confirmBtn.onclick = async () => {
+        try {
+            const response = await client.changeUserRole(userId, role);
+            result.className = 'modal-result success';
+            result.textContent = response.message;
+            confirmBtn.style.display = 'none'; // Hide confirm button after success
+            setTimeout(() => {
+                modal.style.display = 'none';
+                loadUsers();
+            }, 2000);
+        } catch (error) {
+            result.className = 'modal-result error';
+            result.textContent = error.message || 'Error changing role';
         }
+    };
+
+    cancelBtn.onclick = () => {
+        modal.style.display = 'none';
+    };
+}
 
         async function loadProps() {
             try {
