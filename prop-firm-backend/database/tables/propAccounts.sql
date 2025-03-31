@@ -14,6 +14,7 @@ CREATE TABLE PropAccounts (
     updatedAt DATETIME DEFAULT GETDATE()
 );
 
+
 SELECT * FROM PropAccounts;
 
 DELETE FROM PropAccounts;

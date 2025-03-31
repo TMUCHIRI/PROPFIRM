@@ -9,6 +9,7 @@ interface Window {
 interface LoginClient {
     login(email: string, password: string): Promise<{ token: string, role: string }>;
     register(username: string, email: string, password: string): Promise<{ token: string }>;
+    resetPassword(email: string, password: string): Promise<{message: string}>;
 }
 
 // Define the AccountClient interface to match the class

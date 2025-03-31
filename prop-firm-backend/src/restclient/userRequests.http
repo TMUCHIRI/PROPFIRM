@@ -69,3 +69,13 @@ Authorization: Bearer {{userToken}}
 GET {{baseUrl}}/accounts/{{loginUser.response.body.user.id}}
 Content-Type: application/json
 Authorization: Bearer {{userToken}}
+
+
+### RESET PASSWORD
+PUT {{baseUrl}}/auth/reset-password
+Content-Type: application/json
+
+{
+    "email": "timo@example.com",
+    "password": "12345678"
+}

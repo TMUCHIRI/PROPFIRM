@@ -1,5 +1,5 @@
 import express from 'express';
-import { getAllUsers, getAllAccounts, getAllTrades, getDashboardStats, toggleAccountStatus, changeUserRole, createPropAccount, getAllPropAccounts, updatePropAccount } from '../controllers/adminController';
+import { getAllUsers, getAllAccounts, getAllTrades, getDashboardStats, toggleAccountStatus, changeUserRole, createPropAccount, getAllPropAccounts, updatePropAccount, accountStatus } from '../controllers/adminController';
 import jwt from 'jsonwebtoken';
 import { CustomJwtPayload } from '../../types';
 
@@ -35,6 +35,7 @@ router.get('/accounts', authMiddleware, adminMiddleware, getAllAccounts);
 router.get('/trades', authMiddleware, adminMiddleware, getAllTrades);
 router.get('/stats', authMiddleware, adminMiddleware, getDashboardStats);
 router.patch('/toggle-account', authMiddleware, adminMiddleware, toggleAccountStatus);
+router.patch('/account-status', authMiddleware, adminMiddleware, accountStatus)
 router.patch('/change-role', authMiddleware, adminMiddleware, changeUserRole); // NEW: Role change route
 router.post('/prop-accounts/create', authMiddleware, adminMiddleware, createPropAccount);
 router.put('/prop-accounts/:id', authMiddleware, adminMiddleware, updatePropAccount);

@@ -8,7 +8,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-// frontend/src/adminClient.ts
 const BASE_URL = 'http://localhost:3000'; // Adjust if needed
 class AdminClient {
     constructor(token) {
@@ -70,15 +69,15 @@ class AdminClient {
             return response.json();
         });
     }
-    toggleAccountStatus(accountId, isActive) {
+    toggleAccountStatus(id, isActive) {
         return __awaiter(this, void 0, void 0, function* () {
-            const response = yield fetch(`${BASE_URL}/admin/toggle-account`, {
+            const response = yield fetch(`${BASE_URL}/admin/account-status`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${this.token}`
                 },
-                body: JSON.stringify({ accountId, isActive })
+                body: JSON.stringify({ id, isActive })
             });
             if (!response.ok)
                 throw new Error(yield response.text());
@@ -87,7 +86,7 @@ class AdminClient {
     }
     changeUserRole(userId, role) {
         return __awaiter(this, void 0, void 0, function* () {
-            const response = yield fetch(`${BASE_URL}/admin/change-role`, {
+            const response = yield fetch(`${BASE_URL}/admin/toggle-account`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
@@ -114,7 +113,7 @@ class AdminClient {
             return response.json();
         });
     }
-    createPropAccount(title, tradingBalance, challengeFee) {
+    createPropAccount(title, tradingBalance, challengeFee, profitTargetPhase1, profitTargetPhase2, dailyLossLimit, maxTrailingDrawdown, minTradingDays, leverageMax, reEntryAllowed) {
         return __awaiter(this, void 0, void 0, function* () {
             const response = yield fetch(`${BASE_URL}/admin/prop-accounts/create`, {
                 method: 'POST',
@@ -122,14 +121,17 @@ class AdminClient {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${this.token}`
                 },
-                body: JSON.stringify({ title, tradingBalance, challengeFee })
+                body: JSON.stringify({
+                    title, tradingBalance, challengeFee, profitTargetPhase1, profitTargetPhase2,
+                    dailyLossLimit, maxTrailingDrawdown, minTradingDays, leverageMax, reEntryAllowed
+                })
             });
             if (!response.ok)
                 throw new Error(yield response.text());
             return response.json();
         });
     }
-    updatePropAccount(id, title, tradingBalance, challengeFee) {
+    updatePropAccount(id, title, tradingBalance, challengeFee, profitTargetPhase1, profitTargetPhase2, dailyLossLimit, maxTrailingDrawdown, minTradingDays, leverageMax, reEntryAllowed) {
         return __awaiter(this, void 0, void 0, function* () {
             const response = yield fetch(`${BASE_URL}/admin/prop-accounts/${id}`, {
                 method: 'PUT',
@@ -137,7 +139,10 @@ class AdminClient {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${this.token}`
                 },
-                body: JSON.stringify({ title, tradingBalance, challengeFee })
+                body: JSON.stringify({
+                    title, tradingBalance, challengeFee, profitTargetPhase1, profitTargetPhase2,
+                    dailyLossLimit, maxTrailingDrawdown, minTradingDays, leverageMax, reEntryAllowed
+                })
             });
             if (!response.ok)
                 throw new Error(yield response.text());

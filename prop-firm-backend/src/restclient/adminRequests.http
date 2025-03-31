@@ -19,7 +19,7 @@ Content-Type: application/json
 
 {
     "email": "admin@example.com",
-    "password": "adminpass123"
+    "password": "ADMINPASS123"
 }
 
 ### FETCH ALL USERS
@@ -60,6 +60,26 @@ Authorization: Bearer {{adminToken}}
 {
     "accountId": "F5D41744-2EDA-4655-B801-0CBDBE60F523",
     "isActive": true
+}
+
+### TOGGLE MAIN ACCOUNT STATUS (ACTIVATE)
+PATCH {{baseUrl}}/admin/account-status
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+    "id": "377E6841-521B-41FB-AE9A-D46B71496D18",
+    "isActive": true
+}
+
+### TOGGLE MAIN ACCOUNT STATUS (DEACTIVATE)
+PATCH {{baseUrl}}/admin/account-status
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+    "id": "377E6841-521B-41FB-AE9A-D46B71496D18",
+    "isActive": false
 }
 
 ### CHANGE USER ROLE TO ADMIN

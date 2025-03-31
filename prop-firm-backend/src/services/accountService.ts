@@ -73,27 +73,6 @@ export class AccountService {
         return result.recordset;
     }
 
-    async simulateTrade(accountId: string, transactionId: string, amount: number, description: string) {
-        const { error } = Joi.object({
-            accountId: Joi.string().uuid().required(),
-            transactionId: Joi.string().uuid().required(),
-            amount: Joi.number().negative().required(),
-            description: Joi.string().required()
-        }).validate({ accountId, transactionId, amount, description });
-        if (error) throw new Error(error.details[0].message);
-    
-        const tradeId = uuidv4();
-        const pool = await poolPromise;
-        const result = await pool.request()
-            .input('tradeId', sql.UniqueIdentifier, tradeId)
-            .input('transactionId', sql.UniqueIdentifier, transactionId)
-            .input('accountId', sql.UniqueIdentifier, accountId)
-            .input('amount', sql.Decimal(15, 2), amount)
-            .input('description', sql.VarChar, description)
-            .execute('sp_SimulateTrade');
-        return result.recordset[0];
-    }
-
     async getUserTradeTransactions(userId: string) {
         const { error } = Joi.string().uuid().required().validate(userId);
         if (error) throw new Error('Invalid user ID');
@@ -101,11 +80,15 @@ export class AccountService {
         const pool = await poolPromise;
         const result = await pool.request()
             .input('userId', sql.UniqueIdentifier, userId)
-            .query('SELECT tradeId, accountId, amount, description, tradeDate ' +
-                   'FROM TradeTransactions tt ' +
-                   'WHERE EXISTS (SELECT 1 FROM PropTransactions pt WHERE pt.accountId = tt.accountId AND pt.userId = @userId)');
+            .query(`
+                SELECT tt.tradeId, tt.amount, tt.description, tt.tradeDate, pt.accountId
+                FROM TradeTransactions tt
+                INNER JOIN PropTransactions pt ON tt.transactionId = pt.transactionId
+                WHERE pt.userId = @userId
+            `);
         return result.recordset;
     }
+
 
     async createTransaction(userId: string, accountId: string, propAccountId: string, depositAmount: number, tradingBalance: number, title: string) {
         const { error } = transactionSchema.validate({ userId, accountId, propAccountId, depositAmount, tradingBalance, title });
@@ -139,7 +122,137 @@ export class AccountService {
     async getAllTransactions() {
         const pool = await poolPromise;
         const result = await pool.request()
-            .query('SELECT transactionId, userId, accountId, propAccountId, depositAmount, tradingBalance, title, purchaseDate FROM PropTransactions');
+            .query('SELECT transactionId, userId, accountId, propAccountId, depositAmount, tradingBalance, currentBalance, title, purchaseDate FROM PropTransactions');
         return result.recordset;
+    }
+
+    async hasActiveChallenge(userId: string): Promise<boolean> {
+        const { error } = Joi.string().uuid().required().validate(userId);
+        if (error) throw new Error('Invalid user ID');
+
+        const pool = await poolPromise;
+        const result = await pool.request()
+            .input('userId', sql.UniqueIdentifier, userId)
+            .query(`
+                SELECT COUNT(*) as activeCount
+                FROM PropTransactions
+                WHERE userId = @userId
+                AND status IN ('Phase I', 'Phase II')
+            `);
+        
+        return result.recordset[0].activeCount > 0;
+    }
+
+    //challenge with more rules
+    async startChallenge(userId: string, accountId: string, propAccountId: string) {
+        const { error } = Joi.object({
+            userId: Joi.string().uuid().required(),
+            accountId: Joi.string().uuid().required(),
+            propAccountId: Joi.string().uuid().required()
+        }).validate({ userId, accountId, propAccountId });
+        if (error) throw new Error(error.details[0].message);
+    
+        const pool = await poolPromise;
+    
+        // Fetch PropAccount details
+        const propAccountResult = await pool.request()
+            .input('id', sql.UniqueIdentifier, propAccountId)
+            .query('SELECT * FROM PropAccounts WHERE id = @id');
+        const propAccount = propAccountResult.recordset[0];
+        if (!propAccount) throw new Error('Prop account not found');
+    
+        const transactionId = uuidv4();
+        const result = await pool.request()
+            .input('transactionId', sql.UniqueIdentifier, transactionId)
+            .input('userId', sql.UniqueIdentifier, userId)
+            .input('accountId', sql.UniqueIdentifier, accountId)
+            .input('propAccountId', sql.UniqueIdentifier, propAccountId)
+            .input('depositAmount', sql.Decimal(15, 2), propAccount.challengeFee)
+            .input('tradingBalance', sql.Decimal(15, 2), propAccount.tradingBalance)
+            .input('currentBalance', sql.Decimal(15, 2), propAccount.tradingBalance) // Start with initial balance
+            .input('title', sql.VarChar, propAccount.title)
+            .execute('sp_StartChallenge');
+        return result.recordset[0];
+    }
+
+    async simulateTrade(transactionId: string, amount: number, description: string) {
+        const { error } = Joi.object({
+            transactionId: Joi.string().uuid().required(),
+            amount: Joi.number().required(), // Can be positive or negative
+            description: Joi.string().max(255).required()
+        }).validate({ transactionId, amount, description });
+        if (error) throw new Error(error.details[0].message);
+    
+        const pool = await poolPromise;
+    
+        // Fetch transaction and prop account details
+        const transactionResult = await pool.request()
+            .input('transactionId', sql.UniqueIdentifier, transactionId)
+            .query('SELECT * FROM PropTransactions WHERE transactionId = @transactionId');
+        const transaction = transactionResult.recordset[0];
+        if (!transaction) throw new Error('Transaction not found');
+    
+        const propAccountResult = await pool.request()
+            .input('id', sql.UniqueIdentifier, transaction.propAccountId)
+            .query('SELECT * FROM PropAccounts WHERE id = @id');
+        const propAccount = propAccountResult.recordset[0];
+    
+        // Update balance and trading days
+        const newBalance = transaction.currentBalance + amount;
+        const newTradingDays = transaction.tradingDays + 1;
+    
+        // Rule checks
+        const dailyLoss = transaction.currentBalance - newBalance;
+        if (dailyLoss > (propAccount.dailyLossLimit / 100) * propAccount.tradingBalance) {
+            await pool.request()
+                .input('transactionId', sql.UniqueIdentifier, transactionId)
+                .input('status', sql.VarChar, 'Failed')
+                .query('UPDATE PropTransactions SET status = @status WHERE transactionId = @transactionId');
+            throw new Error('Daily loss limit exceeded. Challenge failed.');
+        }
+    
+        const drawdown = propAccount.tradingBalance - newBalance;
+        if (drawdown > (propAccount.maxTrailingDrawdown / 100) * propAccount.tradingBalance) {
+            await pool.request()
+                .input('transactionId', sql.UniqueIdentifier, transactionId)
+                .input('status', sql.VarChar, 'Failed')
+                .query('UPDATE PropTransactions SET status = @status WHERE transactionId = @transactionId');
+            throw new Error('Max trailing drawdown exceeded. Challenge failed.');
+        }
+    
+        // Check phase progression
+        let newStatus = transaction.status;
+        const profit = newBalance - propAccount.tradingBalance;
+        if (transaction.status === 'Phase I' && profit >= (propAccount.profitTargetPhase1 / 100) * propAccount.tradingBalance) {
+            newStatus = 'Phase II';
+        } else if (transaction.status === 'Phase II' && profit >= (propAccount.profitTargetPhase2 / 100) * propAccount.tradingBalance) {
+            newStatus = 'Completed';
+        }
+    
+        // Update transaction
+        await pool.request()
+            .input('transactionId', sql.UniqueIdentifier, transactionId)
+            .input('currentBalance', sql.Decimal(15, 2), newBalance)
+            .input('tradingDays', sql.Int, newTradingDays)
+            .input('status', sql.VarChar, newStatus)
+            .query(`
+                UPDATE PropTransactions 
+                SET currentBalance = @currentBalance, tradingDays = @tradingDays, status = @status
+                WHERE transactionId = @transactionId
+            `);
+    
+        // Insert trade record (assuming a TradeTransactions table exists)
+        const tradeId = uuidv4();
+        await pool.request()
+            .input('tradeId', sql.UniqueIdentifier, tradeId)
+            .input('transactionId', sql.UniqueIdentifier, transactionId)
+            .input('amount', sql.Decimal(15, 2), amount)
+            .input('description', sql.VarChar, description)
+            .query(`
+                INSERT INTO TradeTransactions (tradeId, transactionId, amount, description, tradeDate)
+                VALUES (@tradeId, @transactionId, @amount, @description, GETDATE())
+            `);
+    
+        return { tradeId, transactionId, amount, description, newBalance, newStatus };
     }
 }

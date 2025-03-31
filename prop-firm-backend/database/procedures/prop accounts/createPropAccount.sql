@@ -2,10 +2,23 @@ CREATE PROCEDURE sp_CreatePropAccount
     @id UNIQUEIDENTIFIER,
     @title VARCHAR(50),
     @tradingBalance DECIMAL(15, 2),
-    @challengeFee DECIMAL(15, 2)
+    @challengeFee DECIMAL(15, 2),
+    @profitTargetPhase1 DECIMAL(5, 2),
+    @profitTargetPhase2 DECIMAL(5, 2),
+    @dailyLossLimit DECIMAL(5, 2),
+    @maxTrailingDrawdown DECIMAL(5, 2),
+    @minTradingDays INT,
+    @leverageMax VARCHAR(10),
+    @reEntryAllowed VARCHAR(20)
 AS
 BEGIN
-    INSERT INTO PropAccounts (id, title, tradingBalance, challengeFee)
-    VALUES (@id, @title, @tradingBalance, @challengeFee);
+    INSERT INTO PropAccounts (
+        id, title, tradingBalance, challengeFee, profitTargetPhase1, profitTargetPhase2,
+        dailyLossLimit, maxTrailingDrawdown, minTradingDays, leverageMax, reEntryAllowed
+    )
+    VALUES (
+        @id, @title, @tradingBalance, @challengeFee, @profitTargetPhase1, @profitTargetPhase2,
+        @dailyLossLimit, @maxTrailingDrawdown, @minTradingDays, @leverageMax, @reEntryAllowed
+    );
     SELECT * FROM PropAccounts WHERE id = @id;
-END;
+END

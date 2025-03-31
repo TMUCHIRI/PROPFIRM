@@ -9,7 +9,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 const API_URL = 'http://localhost:3000';
-const base_Url = 'http://localhost:3000';
 class AccountClient {
     constructor(token) {
         this.token = token;
@@ -24,33 +23,31 @@ class AccountClient {
                 },
                 body: JSON.stringify({ userId, type })
             });
-            if (!response.ok) {
-                const errorText = yield response.text();
-                throw new Error(errorText || 'Failed to create account');
-            }
+            if (!response.ok)
+                throw new Error(yield response.text());
             const data = yield response.json();
             return { id: data.accountId };
         });
     }
-    purchaseAccount(accountId, depositAmount, tradingBalance) {
+    startChallenge(userId, accountId, propAccountId) {
         return __awaiter(this, void 0, void 0, function* () {
-            const response = yield fetch(`${API_URL}/accounts/purchase`, {
+            const response = yield fetch(`${API_URL}/accounts/challenges/start`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${this.token}`
                 },
-                body: JSON.stringify({ accountId, depositAmount, tradingBalance })
+                body: JSON.stringify({ userId, accountId, propAccountId })
             });
-            if (!response.ok) {
-                const errorText = yield response.text();
-                throw new Error(errorText || 'Failed to purchase account');
-            }
+            if (!response.ok)
+                throw new Error(yield response.text());
+            const data = yield response.json();
+            return data.transaction;
         });
     }
     getAllPropAccounts() {
         return __awaiter(this, void 0, void 0, function* () {
-            const response = yield fetch(`${base_Url}/admin/prop-accounts/get-all-accounts`, {
+            const response = yield fetch(`${API_URL}/admin/prop-accounts/get-all-accounts`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -61,22 +58,6 @@ class AccountClient {
                 throw new Error(yield response.text());
             const data = yield response.json();
             return data.propAccounts;
-        });
-    }
-    createTransaction(userId, accountId, propAccountId, depositAmount, tradingBalance, title) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const response = yield fetch(`${API_URL}/accounts/transactions`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${this.token}`
-                },
-                body: JSON.stringify({ userId, accountId, propAccountId, depositAmount, tradingBalance, title })
-            });
-            if (!response.ok)
-                throw new Error(yield response.text());
-            const data = yield response.json();
-            return data.transaction;
         });
     }
     getUserTransactions(userId) {
@@ -96,7 +77,7 @@ class AccountClient {
     }
     simulateTrade(accountId, transactionId, amount, description) {
         return __awaiter(this, void 0, void 0, function* () {
-            const response = yield fetch(`${API_URL}/accounts/simulate-trade`, {
+            const response = yield fetch(`${API_URL}/accounts/challenges/simulate-trade`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -107,7 +88,7 @@ class AccountClient {
             if (!response.ok)
                 throw new Error(yield response.text());
             const data = yield response.json();
-            return data.trade;
+            return data.result;
         });
     }
     getUserTradeTransactions(userId) {

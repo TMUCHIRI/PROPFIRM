@@ -34,14 +34,16 @@ export const getAccounts = async (req: Request, res: Response, next: NextFunctio
 };
 
 export const simulateTrade = async (req: Request, res: Response, next: NextFunction) => {
-    const { accountId, transactionId, amount, description } = req.body;
+    const { transactionId, amount, description } = req.body;
     try {
-        const result = await accountService.simulateTrade(accountId,transactionId, amount, description);
+        const result = await accountService.simulateTrade(transactionId, amount, description);
         res.json({ message: 'Trade simulated', result });
     } catch (error) {
         next(error);
     }
 };
+
+
 
 export const getUserTradeTransactions = async (req: Request, res: Response, next: NextFunction) => {
     const { userId } = req.params;
@@ -77,6 +79,22 @@ export const getAllTransactions = async (req: Request, res: Response, next: Next
     try {
         const transactions = await accountService.getAllTransactions();
         res.json({ transactions });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const startChallenge = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const { userId, accountId, propAccountId } = req.body;
+    try {
+        const hasActiveChallenge = await accountService.hasActiveChallenge(userId);
+        if (hasActiveChallenge) {
+            res.status(403).json({ message: 'You already have an active challenge. Complete it before starting a new one.' });
+            return;
+        }
+        
+        const transaction = await accountService.startChallenge(userId, accountId, propAccountId);
+        res.status(201).json({ message: 'Challenge started', transaction });
     } catch (error) {
         next(error);
     }

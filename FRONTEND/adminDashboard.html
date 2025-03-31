@@ -253,6 +253,7 @@
                         <th>Prop Title</th>
                         <th>Deposit Amount</th>
                         <th>Trading Balance</th>
+                        <th>Current Balance</th>
                         <th>Account ID</th>
                         <th>Date</th>
                     </tr>
@@ -293,11 +294,18 @@
                         <th>Title</th>
                         <th>Trading Balance</th>
                         <th>Challenge Fee</th>
+                        <th>Phase 1 Target (%)</th>
+                        <th>Phase 2 Target (%)</th>
+                        <th>Daily Loss (%)</th>
+                        <th>Max Drawdown (%)</th>
+                        <th>Min Days</th>
+                        <th>Leverage</th>
+                        <th>Re-Entry</th>
                         <th>Action</th>
                     </tr>
                 </thead>
                 <tbody id="props-table-body">
-                    <tr><td colspan="5" class="no-data">Loading...</td></tr>
+                    <tr><td colspan="12" class="no-data">Loading...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -307,8 +315,15 @@
             <div class="modal-content">
                 <h2 id="modalTitle">Create Prop Account</h2>
                 <input type="text" id="propTitle" placeholder="Title (e.g., Beginner)">
-                <input type="number" id="propTradingBalance" placeholder="Trading Balance (e.g., 5000)">
-                <input type="number" id="propChallengeFee" placeholder="Challenge Fee (e.g., 49)">
+                <input type="number" id="propTradingBalance" placeholder="Trading Balance (e.g., 5000)" step="0.01">
+                <input type="number" id="propChallengeFee" placeholder="Challenge Fee (e.g., 49)" step="0.01">
+                <input type="number" id="propProfitTargetPhase1" placeholder="Phase 1 Profit Target (%) (default: 10)" step="0.01">
+                <input type="number" id="propProfitTargetPhase2" placeholder="Phase 2 Profit Target (%) (default: 7.5)" step="0.01">
+                <input type="number" id="propDailyLossLimit" placeholder="Daily Loss Limit (%) (default: 5)" step="0.01">
+                <input type="number" id="propMaxTrailingDrawdown" placeholder="Max Trailing Drawdown (%) (default: 10)" step="0.01">
+                <input type="number" id="propMinTradingDays" placeholder="Min Trading Days (default: 5)">
+                <input type="text" id="propLeverageMax" placeholder="Max Leverage (default: 200:1)">
+                <input type="text" id="propReEntryAllowed" placeholder="Re-Entry Allowed (default: Yes at 50% of Fee)">
                 <p id="modalError" class="modal-error"></p>
                 <button class="btn" id="savePropBtn">Save</button>
                 <button class="btn btn-danger" id="cancelPropBtn">Cancel</button>
@@ -475,6 +490,7 @@
                         <td>${transaction.title}</td>
                         <td>$${transaction.depositAmount.toLocaleString()}</td>
                         <td>$${transaction.tradingBalance.toLocaleString()}</td>
+                        <td>$${transaction.currentBalance.toLocaleString()}</td>
                         <td>${transaction.accountId}</td>
                         <td>${new Date(transaction.purchaseDate).toLocaleDateString()}</td>
                     `;
@@ -516,7 +532,7 @@
         }
 
         // Toggle account status
-        async function toggleAccount(accountId, isActive) {
+    async function toggleAccount(id, isActive) {
     const modal = document.getElementById('toggleAccountModal');
     const title = document.getElementById('toggleAccountModalTitle');
     const message = document.getElementById('toggleAccountModalMessage');
@@ -532,10 +548,10 @@
 
     confirmBtn.onclick = async () => {
         try {
-            const response = await client.toggleAccountStatus(accountId, isActive);
+            const response = await client.toggleAccountStatus(id, isActive);
             result.className = 'modal-result success';
             result.textContent = response.message;
-            confirmBtn.style.display = 'none'; // Hide confirm button after success
+            // confirmBtn.style.display = 'none';
             setTimeout(() => {
                 modal.style.display = 'none';
                 loadTraders();
@@ -571,7 +587,7 @@
             const response = await client.changeUserRole(userId, role);
             result.className = 'modal-result success';
             result.textContent = response.message;
-            confirmBtn.style.display = 'none'; // Hide confirm button after success
+            // confirmBtn.style.display = 'none';
             setTimeout(() => {
                 modal.style.display = 'none';
                 loadUsers();
@@ -587,104 +603,162 @@
     };
 }
 
-        async function loadProps() {
+async function loadProps() {
+        try {
+            const { propAccounts } = await client.fetchAllPropAccounts();
+            const propsTableBody = document.getElementById('props-table-body');
+            propsTableBody.innerHTML = propAccounts.length ? '' : '<tr><td colspan="12" class="no-data">No prop accounts</td></tr>';
+
+            propAccounts.forEach(account => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${account.id}</td>
+                    <td>${account.title}</td>
+                    <td>$${account.tradingBalance.toLocaleString()}</td>
+                    <td>$${account.challengeFee.toLocaleString()}</td>
+                    <td>${account.profitTargetPhase1}%</td>
+                    <td>${account.profitTargetPhase2}%</td>
+                    <td>${account.dailyLossLimit}%</td>
+                    <td>${account.maxTrailingDrawdown}%</td>
+                    <td>${account.minTradingDays}</td>
+                    <td>${account.leverageMax}</td>
+                    <td>${account.reEntryAllowed}</td>
+                    <td><button class="btn" onclick="showUpdateModal('${account.id}', '${account.title}', ${account.tradingBalance}, ${account.challengeFee}, ${account.profitTargetPhase1}, ${account.profitTargetPhase2}, ${account.dailyLossLimit}, ${account.maxTrailingDrawdown}, ${account.minTradingDays}, '${account.leverageMax}', '${account.reEntryAllowed}')">Update</button></td>
+                `;
+                propsTableBody.appendChild(row);
+            });
+        } catch (error) {
+            console.error('Error fetching prop accounts:', error.message);
+            document.getElementById('props-table-body').innerHTML = `<tr><td colspan="12" class="no-data">${error.message}</td></tr>`;
+        }
+    }
+
+    // Modal functions
+    function showCreateModal() {
+        const modal = document.getElementById('propModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const propTitle = document.getElementById('propTitle');
+        const propTradingBalance = document.getElementById('propTradingBalance');
+        const propChallengeFee = document.getElementById('propChallengeFee');
+        const propProfitTargetPhase1 = document.getElementById('propProfitTargetPhase1');
+        const propProfitTargetPhase2 = document.getElementById('propProfitTargetPhase2');
+        const propDailyLossLimit = document.getElementById('propDailyLossLimit');
+        const propMaxTrailingDrawdown = document.getElementById('propMaxTrailingDrawdown');
+        const propMinTradingDays = document.getElementById('propMinTradingDays');
+        const propLeverageMax = document.getElementById('propLeverageMax');
+        const propReEntryAllowed = document.getElementById('propReEntryAllowed');
+        const modalError = document.getElementById('modalError');
+
+        modalTitle.textContent = 'Create Prop Account';
+        propTitle.value = '';
+        propTradingBalance.value = '';
+        propChallengeFee.value = '';
+        propProfitTargetPhase1.value = '';
+        propProfitTargetPhase2.value = '';
+        propDailyLossLimit.value = '';
+        propMaxTrailingDrawdown.value = '';
+        propMinTradingDays.value = '';
+        propLeverageMax.value = '';
+        propReEntryAllowed.value = '';
+        modalError.textContent = '';
+        modal.style.display = 'flex';
+
+        document.getElementById('savePropBtn').onclick = async () => {
             try {
-                const { propAccounts } = await client.fetchAllPropAccounts();
-                const propsTableBody = document.getElementById('props-table-body');
-                propsTableBody.innerHTML = propAccounts.length ? '' : '<tr><td colspan="5" class="no-data">No prop accounts</td></tr>';
+                const title = propTitle.value;
+                const tradingBalance = parseFloat(propTradingBalance.value);
+                const challengeFee = parseFloat(propChallengeFee.value);
+                const profitTargetPhase1 = propProfitTargetPhase1.value ? parseFloat(propProfitTargetPhase1.value) : undefined;
+                const profitTargetPhase2 = propProfitTargetPhase2.value ? parseFloat(propProfitTargetPhase2.value) : undefined;
+                const dailyLossLimit = propDailyLossLimit.value ? parseFloat(propDailyLossLimit.value) : undefined;
+                const maxTrailingDrawdown = propMaxTrailingDrawdown.value ? parseFloat(propMaxTrailingDrawdown.value) : undefined;
+                const minTradingDays = propMinTradingDays.value ? parseInt(propMinTradingDays.value) : undefined;
+                const leverageMax = propLeverageMax.value || undefined;
+                const reEntryAllowed = propReEntryAllowed.value || undefined;
 
-                propAccounts.forEach(account => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${account.id}</td>
-                        <td>${account.title}</td>
-                        <td>$${account.tradingBalance.toLocaleString()}</td>
-                        <td>$${account.challengeFee.toLocaleString()}</td>
-                        <td><button class="btn" onclick="showUpdateModal('${account.id}', '${account.title}', ${account.tradingBalance}, ${account.challengeFee})">Update</button></td>
-                    `;
-                    propsTableBody.appendChild(row);
-                });
+                await client.createPropAccount(
+                    title, tradingBalance, challengeFee, profitTargetPhase1, profitTargetPhase2,
+                    dailyLossLimit, maxTrailingDrawdown, minTradingDays, leverageMax, reEntryAllowed
+                );
+                modal.style.display = 'none';
+                loadProps();
             } catch (error) {
-                console.error('Error fetching prop accounts:', error.message);
-                document.getElementById('props-table-body').innerHTML = `<tr><td colspan="5" class="no-data">${error.message}</td></tr>`;
+                modalError.textContent = error.message || 'Error creating prop account';
             }
-        }
+        };
+    }
 
-        // Modal functions
-        function showCreateModal() {
-            const modal = document.getElementById('propModal');
-            const modalTitle = document.getElementById('modalTitle');
-            const propTitle = document.getElementById('propTitle');
-            const propTradingBalance = document.getElementById('propTradingBalance');
-            const propChallengeFee = document.getElementById('propChallengeFee');
-            const modalError = document.getElementById('modalError');
+    function showUpdateModal(id, title, tradingBalance, challengeFee, profitTargetPhase1, profitTargetPhase2, dailyLossLimit, maxTrailingDrawdown, minTradingDays, leverageMax, reEntryAllowed) {
+        const modal = document.getElementById('propModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const propTitle = document.getElementById('propTitle');
+        const propTradingBalance = document.getElementById('propTradingBalance');
+        const propChallengeFee = document.getElementById('propChallengeFee');
+        const propProfitTargetPhase1 = document.getElementById('propProfitTargetPhase1');
+        const propProfitTargetPhase2 = document.getElementById('propProfitTargetPhase2');
+        const propDailyLossLimit = document.getElementById('propDailyLossLimit');
+        const propMaxTrailingDrawdown = document.getElementById('propMaxTrailingDrawdown');
+        const propMinTradingDays = document.getElementById('propMinTradingDays');
+        const propLeverageMax = document.getElementById('propLeverageMax');
+        const propReEntryAllowed = document.getElementById('propReEntryAllowed');
+        const modalError = document.getElementById('modalError');
 
-            modalTitle.textContent = 'Create Prop Account';
-            propTitle.value = '';
-            propTradingBalance.value = '';
-            propChallengeFee.value = '';
-            modalError.textContent = '';
-            modal.style.display = 'flex';
+        modalTitle.textContent = 'Update Prop Account';
+        propTitle.value = title;
+        propTradingBalance.value = tradingBalance;
+        propChallengeFee.value = challengeFee;
+        propProfitTargetPhase1.value = profitTargetPhase1;
+        propProfitTargetPhase2.value = profitTargetPhase2;
+        propDailyLossLimit.value = dailyLossLimit;
+        propMaxTrailingDrawdown.value = maxTrailingDrawdown;
+        propMinTradingDays.value = minTradingDays;
+        propLeverageMax.value = leverageMax;
+        propReEntryAllowed.value = reEntryAllowed;
+        modalError.textContent = '';
+        modal.style.display = 'flex';
 
-            document.getElementById('savePropBtn').onclick = async () => {
-                try {
-                    const title = propTitle.value;
-                    const tradingBalance = parseFloat(propTradingBalance.value);
-                    const challengeFee = parseFloat(propChallengeFee.value);
-                    await client.createPropAccount(title, tradingBalance, challengeFee);
-                    modal.style.display = 'none';
-                    loadProps();
-                } catch (error) {
-                    modalError.textContent = error.message || 'Error creating prop account';
-                }
-            };
-        }
+        document.getElementById('savePropBtn').onclick = async () => {
+            try {
+                const updatedTitle = propTitle.value;
+                const updatedTradingBalance = parseFloat(propTradingBalance.value);
+                const updatedChallengeFee = parseFloat(propChallengeFee.value);
+                const updatedProfitTargetPhase1 = propProfitTargetPhase1.value ? parseFloat(propProfitTargetPhase1.value) : undefined;
+                const updatedProfitTargetPhase2 = propProfitTargetPhase2.value ? parseFloat(propProfitTargetPhase2.value) : undefined;
+                const updatedDailyLossLimit = propDailyLossLimit.value ? parseFloat(propDailyLossLimit.value) : undefined;
+                const updatedMaxTrailingDrawdown = propMaxTrailingDrawdown.value ? parseFloat(propMaxTrailingDrawdown.value) : undefined;
+                const updatedMinTradingDays = propMinTradingDays.value ? parseInt(propMinTradingDays.value) : undefined;
+                const updatedLeverageMax = propLeverageMax.value || undefined;
+                const updatedReEntryAllowed = propReEntryAllowed.value || undefined;
 
-        function showUpdateModal(id, title, tradingBalance, challengeFee) {
-            const modal = document.getElementById('propModal');
-            const modalTitle = document.getElementById('modalTitle');
-            const propTitle = document.getElementById('propTitle');
-            const propTradingBalance = document.getElementById('propTradingBalance');
-            const propChallengeFee = document.getElementById('propChallengeFee');
-            const modalError = document.getElementById('modalError');
+                await client.updatePropAccount(
+                    id, updatedTitle, updatedTradingBalance, updatedChallengeFee, updatedProfitTargetPhase1,
+                    updatedProfitTargetPhase2, updatedDailyLossLimit, updatedMaxTrailingDrawdown,
+                    updatedMinTradingDays, updatedLeverageMax, updatedReEntryAllowed
+                );
+                modal.style.display = 'none';
+                loadProps();
+            } catch (error) {
+                modalError.textContent = error.message || 'Error updating prop account';
+            }
+        };
+    }
 
-            modalTitle.textContent = 'Update Prop Account';
-            propTitle.value = title;
-            propTradingBalance.value = tradingBalance;
-            propChallengeFee.value = challengeFee;
-            modalError.textContent = '';
-            modal.style.display = 'flex';
+    document.getElementById('createPropBtn').addEventListener('click', showCreateModal);
+    document.getElementById('cancelPropBtn').addEventListener('click', () => {
+        document.getElementById('propModal').style.display = 'none';
+    });
 
-            document.getElementById('savePropBtn').onclick = async () => {
-                try {
-                    const updatedTitle = propTitle.value;
-                    const updatedTradingBalance = parseFloat(propTradingBalance.value);
-                    const updatedChallengeFee = parseFloat(propChallengeFee.value);
-                    await client.updatePropAccount(id, updatedTitle, updatedTradingBalance, updatedChallengeFee);
-                    modal.style.display = 'none';
-                    loadProps();
-                } catch (error) {
-                    modalError.textContent = error.message || 'Error updating prop account';
-                }
-            };
-        }
+    logoutLink.addEventListener('click', () => {
+        localStorage.clear();
+        window.location.href = 'clientlogin.html';
+    });
 
-        document.getElementById('createPropBtn').addEventListener('click', showCreateModal);
-        document.getElementById('cancelPropBtn').addEventListener('click', () => {
-            document.getElementById('propModal').style.display = 'none';
-        });
-
-        logoutLink.addEventListener('click', () => {
-            localStorage.clear();
-            window.location.href = 'clientlogin.html';
-        });
-
-        // Load data on page load
-        loadOverview();
-        loadTraders();
-        loadTrades();
-        loadUsers();
-        loadProps();
+    // Load data on page load
+    loadOverview();
+    loadTraders();
+    loadTrades();
+    loadUsers();
+    loadProps();
     </script>
 </body>
 </html>

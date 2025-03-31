@@ -9,3 +9,5 @@ CREATE TABLE Accounts (
     createdAt DATETIME DEFAULT GETDATE(),
     FOREIGN KEY (userId) REFERENCES Users(id)
 );
+
+SELECT * FROM Accounts;

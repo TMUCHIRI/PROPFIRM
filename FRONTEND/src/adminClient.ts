@@ -1,4 +1,3 @@
-// frontend/src/adminClient.ts
 const BASE_URL = 'http://localhost:3000'; // Adjust if needed
 
 class AdminClient {
@@ -56,21 +55,21 @@ class AdminClient {
         return response.json();
     }
 
-    async toggleAccountStatus(accountId: string, isActive: boolean) {
-        const response = await fetch(`${BASE_URL}/admin/toggle-account`, {
+    async toggleAccountStatus(id: string, isActive: boolean) {
+        const response = await fetch(`${BASE_URL}/admin/account-status`, {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${this.token}`
             },
-            body: JSON.stringify({ accountId, isActive })
+            body: JSON.stringify({ id, isActive })
         });
         if (!response.ok) throw new Error(await response.text());
         return response.json();
     }
 
     async changeUserRole(userId: string, role: string) {
-        const response = await fetch(`${BASE_URL}/admin/change-role`, {
+        const response = await fetch(`${BASE_URL}/admin/toggle-account`, {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',
@@ -94,27 +93,56 @@ class AdminClient {
         return response.json();
     }
 
-    async createPropAccount(title: string, tradingBalance: number, challengeFee: number) {
+    async createPropAccount(
+        title: string,
+        tradingBalance: number,
+        challengeFee: number,
+        profitTargetPhase1?: number,
+        profitTargetPhase2?: number,
+        dailyLossLimit?: number,
+        maxTrailingDrawdown?: number,
+        minTradingDays?: number,
+        leverageMax?: string,
+        reEntryAllowed?: string
+    ) {
         const response = await fetch(`${BASE_URL}/admin/prop-accounts/create`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${this.token}`
             },
-            body: JSON.stringify({ title, tradingBalance, challengeFee })
+            body: JSON.stringify({
+                title, tradingBalance, challengeFee, profitTargetPhase1, profitTargetPhase2,
+                dailyLossLimit, maxTrailingDrawdown, minTradingDays, leverageMax, reEntryAllowed
+            })
         });
         if (!response.ok) throw new Error(await response.text());
         return response.json();
     }
 
-    async updatePropAccount(id: string, title: string, tradingBalance: number, challengeFee: number) {
+    async updatePropAccount(
+        id: string,
+        title: string,
+        tradingBalance: number,
+        challengeFee: number,
+        profitTargetPhase1?: number,
+        profitTargetPhase2?: number,
+        dailyLossLimit?: number,
+        maxTrailingDrawdown?: number,
+        minTradingDays?: number,
+        leverageMax?: string,
+        reEntryAllowed?: string
+    ) {
         const response = await fetch(`${BASE_URL}/admin/prop-accounts/${id}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${this.token}`
             },
-            body: JSON.stringify({ title, tradingBalance, challengeFee })
+            body: JSON.stringify({
+                title, tradingBalance, challengeFee, profitTargetPhase1, profitTargetPhase2,
+                dailyLossLimit, maxTrailingDrawdown, minTradingDays, leverageMax, reEntryAllowed
+            })
         });
         if (!response.ok) throw new Error(await response.text());
         return response.json();

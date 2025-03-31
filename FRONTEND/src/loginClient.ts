@@ -33,6 +33,20 @@ class LoginClient {
         const data = await response.json();
         return { token: data.token };
     }
+
+    async resetPassword(email: string, password: string): Promise<{message: string}> {
+        const response = await fetch(`${baseUrl}/auth/reset-password`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+        if (!response.ok) {
+            const errorText = await response.text();
+            
+            throw new Error(errorText || 'Password reset failed');
+        }
+        return response.json();
+    }
 }
 
 // Expose loginClient globally

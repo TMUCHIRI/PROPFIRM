@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "build": "esbuild src/accountClient.ts --bundle --outfile=dist/accountClient.js --format=iife --global-name=accountClient"
+    "build": "esbuild src/accountClient.ts --bundle --outfile=dist/accountClient.js --format=iife --global-name=accountClient",
+    "start": "tsc -w"
   },
   "keywords": [],
   "author": "",

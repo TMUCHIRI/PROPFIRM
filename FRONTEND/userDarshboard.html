@@ -138,7 +138,9 @@
         <h2>Apex Markets</h2>
         <ul>
             <li><a id="account-link" class="active">Account</a></li>
-            <li><a id="transactions-link">Transactions</a></li>
+            <li><a id="challenges-link">Challenges</a></li>
+            <li><a id="trades-link">Trades</a></li>
+            <li><a id="prop-link" href="prop.html">Start New Challenge</a></li>
             <li><a id="logout-link">Logout</a></li>
         </ul>
     </div>
@@ -159,23 +161,26 @@
             </table>
         </div>
 
-        <div id="transactions-section" class="section">
-            <h2>Prop Transactions</h2>
+        <div id="challenges-section" class="section">
+            <h2>Active Challenges</h2>
             <table>
                 <thead>
                     <tr>
                         <th>Transaction ID</th>
                         <th>Prop Title</th>
                         <th>Deposit Amount</th>
-                        <th>Trading Balance</th>
-                        <th>Account ID</th>
+                        <th>Initial Balance</th>
+                        <th>Current Balance</th>
+                        <th>Status</th>
                         <th>Date</th>
                         <th>Action</th>
                     </tr>
                 </thead>
-                <tbody id="transactions-list"></tbody>
+                <tbody id="challenges-list"></tbody>
             </table>
+        </div>
 
+        <div id="trades-section" class="section">
             <h2>Trade Transactions</h2>
             <table>
                 <thead>
@@ -194,7 +199,7 @@
         <div id="tradeModal" class="modal">
             <div class="modal-content">
                 <h2>Simulate Trade</h2>
-                <input type="number" id="tradeAmount" placeholder="Amount (e.g., -100)" step="0.01">
+                <input type="number" id="tradeAmount" placeholder="Amount (positive or negative)" step="0.01">
                 <textarea id="tradeDescription" placeholder="Description (e.g., Short EUR/USD)"></textarea>
                 <p id="tradeMessage" class="modal-error"></p>
                 <button class="btn-confirm" id="confirmTradeBtn">Simulate</button>
@@ -214,20 +219,24 @@
         const client = accountClient(token);
 
         const accountLink = document.getElementById('account-link');
-        const transactionsLink = document.getElementById('transactions-link');
+        const challengesLink = document.getElementById('challenges-link');
+        const tradesLink = document.getElementById('trades-link');
         const logoutLink = document.getElementById('logout-link');
 
         const accountSection = document.getElementById('account-section');
-        const transactionsSection = document.getElementById('transactions-section');
+        const challengesSection = document.getElementById('challenges-section');
+        const tradesSection = document.getElementById('trades-section');
 
         function switchSection(sectionToShow) {
             accountSection.classList.remove('active');
-            transactionsSection.classList.remove('active');
+            challengesSection.classList.remove('active');
+            tradesSection.classList.remove('active');
             sectionToShow.classList.add('active');
         }
 
         accountLink.addEventListener('click', () => switchSection(accountSection));
-        transactionsLink.addEventListener('click', () => switchSection(transactionsSection));
+        challengesLink.addEventListener('click', () => switchSection(challengesSection));
+        tradesLink.addEventListener('click', () => switchSection(tradesSection));
         logoutLink.addEventListener('click', () => {
             localStorage.clear();
             window.location.href = 'clientlogin.html';
@@ -245,54 +254,58 @@
             `;
         }
 
-        async function loadTransactions() {
-            const propTransactionsList = document.getElementById('transactions-list');
+        async function loadChallenges() {
+            const challengesList = document.getElementById('challenges-list');
             try {
                 const userId = jwt_decode(token).id;
                 const transactions = await client.getUserTransactions(userId);
-                const propPurchases = transactions.filter(t => t.depositAmount > 0); // Only purchases
-                propTransactionsList.innerHTML = propPurchases.length ? '' : '<tr><td colspan="7" class="no-data">No prop purchases</td></tr>';
+                challengesList.innerHTML = transactions.length ? '' : '<tr><td colspan="8" class="no-data">No challenges started</td></tr>';
 
-                propPurchases.forEach(t => {
+                transactions.forEach(t => {
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td>${t.transactionId}</td>
                         <td>${t.title}</td>
                         <td>$${t.depositAmount.toLocaleString()}</td>
                         <td>$${t.tradingBalance.toLocaleString()}</td>
-                        <td>${t.accountId}</td>
+                        <td>$${t.currentBalance.toLocaleString()}</td>
+                        <td>${t.status}</td>
                         <td>${new Date(t.purchaseDate).toLocaleDateString()}</td>
-                        <td><button class="simulate-btn" onclick="showTradeModal('${t.accountId}', '${t.transactionId}')">Simulate Trade</button></td>
+                        <td>
+                            ${t.status === 'Completed' || t.status === 'Failed' ? 
+                                'N/A' : 
+                                `<button class="simulate-btn" onclick="showTradeModal('${t.accountId}', '${t.transactionId}')">Simulate Trade</button>`}
+                        </td>
                     `;
-                    propTransactionsList.appendChild(row);
+                    challengesList.appendChild(row);
                 });
             } catch (error) {
-                propTransactionsList.innerHTML = `<tr><td colspan="7" class="no-data">${error.message || 'Failed to load prop transactions'}</td></tr>`;
+                challengesList.innerHTML = `<tr><td colspan="8" class="no-data">${error.message || 'Failed to load challenges'}</td></tr>`;
             }
         }
 
         async function loadTradeTransactions() {
-            const tradeTransactionsList = document.getElementById('trade-transactions-list');
-            try {
-                const userId = jwt_decode(token).id;
-                const trades = await client.getUserTradeTransactions(userId);
-                tradeTransactionsList.innerHTML = trades.length ? '' : '<tr><td colspan="5" class="no-data">No trade transactions</td></tr>';
+    const tradeTransactionsList = document.getElementById('trade-transactions-list');
+    try {
+        const userId = jwt_decode(token).id;
+        const trades = await client.getUserTradeTransactions(userId);
+        tradeTransactionsList.innerHTML = trades.length ? '' : '<tr><td colspan="5" class="no-data">No trade transactions</td></tr>';
 
-                trades.forEach(t => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${t.tradeId}</td>
-                        <td>$${t.amount.toLocaleString()}</td>
-                        <td>${t.description}</td>
-                        <td>${t.accountId}</td>
-                        <td>${new Date(t.tradeDate).toLocaleDateString()}</td>
-                    `;
-                    tradeTransactionsList.appendChild(row);
-                });
-            } catch (error) {
-                tradeTransactionsList.innerHTML = `<tr><td colspan="5" class="no-data">${error.message || 'Failed to load trade transactions'}</td></tr>`;
-            }
-        }
+        trades.forEach(t => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${t.tradeId}</td>
+                <td>$${t.amount.toLocaleString()}</td>
+                <td>${t.description}</td>
+                <td>${t.accountId}</td> <!-- Matches pt.accountId from query -->
+                <td>${new Date(t.tradeDate).toLocaleDateString()}</td>
+            `;
+            tradeTransactionsList.appendChild(row);
+        });
+    } catch (error) {
+        tradeTransactionsList.innerHTML = `<tr><td colspan="5" class="no-data">${error.message || 'Failed to load trade transactions'}</td></tr>`;
+    }
+}
 
         function showTradeModal(accountId, transactionId) {
             const modal = document.getElementById('tradeModal');
@@ -309,13 +322,14 @@
                 try {
                     const amount = parseFloat(tradeAmount.value);
                     const description = tradeDescription.value;
-                    if (amount >= 0 || !description) throw new Error('Amount must be negative and description required');
+                    if (!amount || !description) throw new Error('Amount and description are required');
                     await client.simulateTrade(accountId, transactionId, amount, description);
                     tradeMessage.className = 'modal-success';
-                    tradeMessage.textContent = 'Trade simulated successfully! Updating balance...';
+                    tradeMessage.textContent = 'Trade simulated successfully! Updating...';
                     setTimeout(() => {
                         modal.style.display = 'none';
-                        loadTransactions();
+                        loadChallenges();
+                        loadTradeTransactions();
                     }, 2000);
                 } catch (error) {
                     tradeMessage.className = 'modal-error';
@@ -330,7 +344,7 @@
 
         window.addEventListener('load', () => {
             loadUserDetails();
-            loadTransactions();
+            loadChallenges();
             loadTradeTransactions();
         });
     </script>

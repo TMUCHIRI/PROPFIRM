@@ -51,6 +51,16 @@ export const toggleAccountStatus = async (req: Request, res: Response, next: Nex
     }
 };
 
+export const accountStatus = async (req: Request, res: Response, next: NextFunction) => {
+    const { id, isActive } = req.body;
+    try {
+        const result = await adminService.accountStatus(id, isActive);
+        res.json({message: `Account ${isActive ? 'activated' : 'deactivated'}`, result })
+    } catch (error) {
+        next(error)
+    }
+}
+
 // NEW: Change user role endpoint
 export const changeUserRole = async (req: Request, res: Response, next: NextFunction) => {
     const { userId, role } = req.body;
@@ -63,9 +73,9 @@ export const changeUserRole = async (req: Request, res: Response, next: NextFunc
 };
 
 export const createPropAccount = async (req: Request, res: Response, next: NextFunction) => {
-    const { title, tradingBalance, challengeFee } = req.body;
+    const { title, tradingBalance, challengeFee, profitTargetPhase1, profitTargetPhase2, dailyLossLimit, maxTrailingDrawdown, minTradingDays, leverageMax, reEntryAllowed } = req.body;
     try {
-        const propAccount = await adminService.createPropAccount(title, tradingBalance, challengeFee);
+        const propAccount = await adminService.createPropAccount(title, tradingBalance, challengeFee, profitTargetPhase1, profitTargetPhase2, dailyLossLimit, maxTrailingDrawdown, minTradingDays, leverageMax, reEntryAllowed);
         res.status(201).json({ message: 'Prop account created', propAccount });
     } catch (error) {
         next(error);
@@ -74,9 +84,9 @@ export const createPropAccount = async (req: Request, res: Response, next: NextF
 
 export const updatePropAccount = async (req: Request, res: Response, next: NextFunction) => {
     const { id } = req.params;
-    const { title, tradingBalance, challengeFee } = req.body;
+    const { title, tradingBalance, challengeFee, profitTargetPhase1, profitTargetPhase2, dailyLossLimit, maxTrailingDrawdown, minTradingDays, leverageMax, reEntryAllowed } = req.body;
     try {
-        const propAccount = await adminService.updatePropAccount(id, title, tradingBalance, challengeFee);
+        const propAccount = await adminService.updatePropAccount(id, title, tradingBalance, challengeFee, profitTargetPhase1, profitTargetPhase2, dailyLossLimit, maxTrailingDrawdown, minTradingDays, leverageMax, reEntryAllowed);
         res.json({ message: 'Prop account updated', propAccount });
     } catch (error) {
         next(error);

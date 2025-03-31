@@ -1292,67 +1292,78 @@ footer .nav-section li:not(:last-child) { margin-bottom: 20px; }
 
 /* Prop cards */
 .prop-cards {
-	display: flex;
-	justify-content: center;
-	flex-wrap: wrap;
-	gap: 1rem;
-	color: #fff;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    color: #fff;
 }
 
 .prop-card-wrapper {
-	width: 100%;
-	max-width: 30rem;
-	background-color: #0d2340;
+    width: 100%;
+    max-width: 30rem;
+    background-color: #0d2340;
+    display: flex; /* Add flex to control child layout */
+    flex-direction: column; /* Stack header, body, footer vertically */
+    min-height: 40rem; /* Set a minimum height for consistency */
+    border-radius: 10px; /* Ensure full card has rounded corners */
 }
 
 .prop-card-header {
-	display: flex;
-	justify-content: center;
-	flex-direction: column;
-	align-items: center;
-	background-color: teal;
-	padding: 2.5rem 3rem;
-	border-top-left-radius: 10px;
-	border-top-right-radius: 10px;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    background-color: teal;
+    padding: 2.5rem 3rem;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
 }
 
 .prop-price {
-	font-size: 2.5rem;
+    font-size: 2.5rem;
 }
 
 .prop-title {
-	font-size: 1.4rem;
-	text-transform: uppercase;
-	color: rgb(0, 52, 52);
-	font-weight: bold;
+    font-size: 1.4rem;
+    text-transform: uppercase;
+    color: rgb(0, 52, 52);
+    font-weight: bold;
 }
 
 .prop-card-body {
-	font-size: 1.4rem;
-	padding: 2.5rem 3rem;
+    font-size: 1.4rem;
+    padding: 2.5rem 3rem;
+    flex-grow: 1; /* Allows body to expand and push footer down */
 }
 
-
 .prop-card-details li {
-	padding: 1rem 1rem;
-	border-bottom: 1px solid #d1d1d124;
+    padding: 1rem 1rem;
+    border-bottom: 1px solid #d1d1d124;
 }
 
 .prop-card-footer {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2.5rem 3rem; /* Add padding for consistency */
+    background-color: #0d2340; /* Match wrapper background */
 }
 
 .prop-fee {
-	text-transform: uppercase;
-	font-size: 1.4rem;
+    text-transform: uppercase;
+    font-size: 1.4rem;
 }
 
 .prop-card-cta {
-	margin-block-start: 2rem;
+    margin-block-start: 2rem;
 }
 
+/* Ensure button styling is consistent */
+.btn {
+    padding: 1rem 2rem; /* Adjust padding for better appearance */
+    font-size: 1.4rem;
+}
 /* Media queries */
 @media screen and (min-width: 340px) {
 	.contact-section .section-text {

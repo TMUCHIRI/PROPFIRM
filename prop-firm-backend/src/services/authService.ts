@@ -50,4 +50,18 @@ export class AuthService {
         }
         return { id: user.id, username: user.username, email: user.email, role: user.role }; // Return role from DB
     }
+
+    async resetPassword(email: string, password: string): Promise<void> {
+        const pool = await poolPromise;
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const result = await pool.request()
+            .input('email', sql.VarChar, email)
+            .input('password', sql.VarChar, hashedPassword)
+            .execute('sp_ResetPassword');
+
+        if (result.rowsAffected[0] === 0) {
+            throw new Error('User not found');
+        }
+    }
 }

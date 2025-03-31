@@ -58,6 +58,10 @@
             color: red;
             margin-top: 10px;
         }
+        .success{
+            color: green;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -71,6 +75,7 @@
         <p>Track your trades on-the-go with easy dashboard access!</p>
         <p>Your dashboard is just a few clicks away!</p>
         <p id="error" class="error"></p>
+        <p id="success" class="success"></p>
     </div>
 
     <script src="dist/loginClient.js"></script>
@@ -79,13 +84,14 @@
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const errorEl = document.getElementById('error');
+            const success = document.getElementById('success')
 
             try {
                 const response = await loginClient.login(email, password);
                 const { token, role, accountId } = response;
                 localStorage.setItem('token', token); // Store token in localStorage
                 localStorage.setItem('accountId', accountId); // Store accountId in localStorage
-                errorEl.textContent = 'Logging in...';
+                success.textContent = 'Logging in...';
                 setTimeout(() => {
                     if (role === 'admin') {
                         window.location.href = 'adminDashboard.html';
@@ -94,7 +100,10 @@
                     }
                 }, 3000); // 3-second delay
             } catch (error) {
-                errorEl.textContent = error.message || 'Login failed';
+                errorEl.textContent = 'Invalid Credentials';
+                setTimeout(() => {
+                    errorEl.textContent = ''
+                }, 3000);
             }
         });
     </script>

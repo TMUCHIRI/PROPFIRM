@@ -42,6 +42,20 @@ class LoginClient {
             return { token: data.token };
         });
     }
+    resetPassword(email, password) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const response = yield fetch(`${baseUrl}/auth/reset-password`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+            if (!response.ok) {
+                const errorText = yield response.text();
+                throw new Error(errorText || 'Password reset failed');
+            }
+            return response.json();
+        });
+    }
 }
 // Expose loginClient globally
 window.loginClient = new LoginClient();
