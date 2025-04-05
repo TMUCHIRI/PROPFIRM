@@ -9,16 +9,17 @@ CREATE PROCEDURE sp_CreatePropAccount
     @maxTrailingDrawdown DECIMAL(5, 2),
     @minTradingDays INT,
     @leverageMax VARCHAR(10),
-    @reEntryAllowed VARCHAR(20)
+    @reEntryAllowed VARCHAR(20),
+    @isDemo BIT = 0 -- Added isDemo parameter
 AS
 BEGIN
     INSERT INTO PropAccounts (
         id, title, tradingBalance, challengeFee, profitTargetPhase1, profitTargetPhase2,
-        dailyLossLimit, maxTrailingDrawdown, minTradingDays, leverageMax, reEntryAllowed
+        dailyLossLimit, maxTrailingDrawdown, minTradingDays, leverageMax, reEntryAllowed, isDemo
     )
     VALUES (
         @id, @title, @tradingBalance, @challengeFee, @profitTargetPhase1, @profitTargetPhase2,
-        @dailyLossLimit, @maxTrailingDrawdown, @minTradingDays, @leverageMax, @reEntryAllowed
+        @dailyLossLimit, @maxTrailingDrawdown, @minTradingDays, @leverageMax, @reEntryAllowed, @isDemo
     );
-    SELECT * FROM PropAccounts WHERE id = @id;
-END
+    SELECT * FROM PropAccounts WHERE id = @id; -- Return the created record
+END;

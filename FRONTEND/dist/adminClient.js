@@ -113,8 +113,22 @@ class AdminClient {
             return response.json();
         });
     }
-    createPropAccount(title, tradingBalance, challengeFee, profitTargetPhase1, profitTargetPhase2, dailyLossLimit, maxTrailingDrawdown, minTradingDays, leverageMax, reEntryAllowed) {
+    fetchAllDemoTransactions() {
         return __awaiter(this, void 0, void 0, function* () {
+            const response = yield fetch(`${BASE_URL}/admin/prop-transactions/demo`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${this.token}`
+                }
+            });
+            if (!response.ok)
+                throw new Error(yield response.text());
+            return response.json();
+        });
+    }
+    createPropAccount(title_1, tradingBalance_1, challengeFee_1, profitTargetPhase1_1, profitTargetPhase2_1, dailyLossLimit_1, maxTrailingDrawdown_1, minTradingDays_1, leverageMax_1, reEntryAllowed_1) {
+        return __awaiter(this, arguments, void 0, function* (title, tradingBalance, challengeFee, profitTargetPhase1, profitTargetPhase2, dailyLossLimit, maxTrailingDrawdown, minTradingDays, leverageMax, reEntryAllowed, isDemo = false) {
             const response = yield fetch(`${BASE_URL}/admin/prop-accounts/create`, {
                 method: 'POST',
                 headers: {
@@ -123,7 +137,7 @@ class AdminClient {
                 },
                 body: JSON.stringify({
                     title, tradingBalance, challengeFee, profitTargetPhase1, profitTargetPhase2,
-                    dailyLossLimit, maxTrailingDrawdown, minTradingDays, leverageMax, reEntryAllowed
+                    dailyLossLimit, maxTrailingDrawdown, minTradingDays, leverageMax, reEntryAllowed, isDemo
                 })
             });
             if (!response.ok)

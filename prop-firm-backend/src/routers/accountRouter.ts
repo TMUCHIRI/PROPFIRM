@@ -1,5 +1,5 @@
 import express from 'express';
-import { createAccount, purchaseAccount, getAccounts, simulateTrade, createTransaction, getUserTransactions, getAllTransactions, getUserTradeTransactions, startChallenge } from '../controllers/accountController';
+import { createAccount, purchaseAccount, getAccounts, simulateTrade, createTransaction, getUserTransactions, getAllTransactions, getUserTradeTransactions, startChallenge, startDemoChallenge, getUserDemoTransactions } from '../controllers/accountController';
 import jwt from 'jsonwebtoken';
 
 const router = express.Router();
@@ -33,6 +33,9 @@ router.get('/transactions/:userId', authMiddleware, getUserTransactions);
 
 router.post('/challenges/start', authMiddleware, startChallenge);
 router.post('/challenges/simulate-trade', authMiddleware, simulateTrade);
+
+router.post('/demo-challenges/start', authMiddleware, startDemoChallenge);
+router.get('/transactions/demo/:userId', getUserDemoTransactions);
 
 
 export default router;

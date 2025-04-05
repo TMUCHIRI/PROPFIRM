@@ -73,9 +73,9 @@ export const changeUserRole = async (req: Request, res: Response, next: NextFunc
 };
 
 export const createPropAccount = async (req: Request, res: Response, next: NextFunction) => {
-    const { title, tradingBalance, challengeFee, profitTargetPhase1, profitTargetPhase2, dailyLossLimit, maxTrailingDrawdown, minTradingDays, leverageMax, reEntryAllowed } = req.body;
+    const { title, tradingBalance, challengeFee, profitTargetPhase1, profitTargetPhase2, dailyLossLimit, maxTrailingDrawdown, minTradingDays, leverageMax, reEntryAllowed, isDemo } = req.body;
     try {
-        const propAccount = await adminService.createPropAccount(title, tradingBalance, challengeFee, profitTargetPhase1, profitTargetPhase2, dailyLossLimit, maxTrailingDrawdown, minTradingDays, leverageMax, reEntryAllowed);
+        const propAccount = await adminService.createPropAccount(title, tradingBalance, challengeFee, profitTargetPhase1, profitTargetPhase2, dailyLossLimit, maxTrailingDrawdown, minTradingDays, leverageMax, reEntryAllowed, isDemo);
         res.status(201).json({ message: 'Prop account created', propAccount });
     } catch (error) {
         next(error);
@@ -97,6 +97,15 @@ export const getAllPropAccounts = async (req: Request, res: Response, next: Next
     try {
         const propAccounts = await adminService.getAllPropAccounts();
         res.json({ propAccounts });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const getAllDemoTransactions = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const transactions = await adminService.getAllDemoTransactions();
+        res.status(200).json({ transactions });
     } catch (error) {
         next(error);
     }

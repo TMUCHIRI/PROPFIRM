@@ -255,4 +255,80 @@ export class AccountService {
     
         return { tradeId, transactionId, amount, description, newBalance, newStatus };
     }
+
+    async hasActiveDemoChallenge(userId: string): Promise<boolean> {
+        const { error } = Joi.string().uuid().required().validate(userId);
+        if (error) throw new Error('Invalid user ID');
+
+        const pool = await poolPromise;
+        const result = await pool.request()
+            .input('userId', sql.UniqueIdentifier, userId)
+            .query(`
+                SELECT COUNT(*) as activeCount
+                FROM PropTransactions pt
+                INNER JOIN Accounts a ON pt.accountId = a.id
+                WHERE pt.userId = @userId
+                AND a.type = 'demo'
+                AND pt.status IN ('Phase I', 'Phase II')
+            `);
+        return result.recordset[0].activeCount > 0;
+    }
+
+    async startDemoChallenge(userId: string, accountId: string, propAccountId: string) {
+        const { error } = Joi.object({
+            userId: Joi.string().uuid().required(),
+            accountId: Joi.string().uuid().required(),
+            propAccountId: Joi.string().uuid().required()
+        }).validate({ userId, accountId, propAccountId });
+        if (error) throw new Error('Invalid input');
+
+        const pool = await poolPromise;
+
+        // Verify account is demo
+        const accountCheck = await pool.request()
+            .input('accountId', sql.UniqueIdentifier, accountId)
+            .query('SELECT type FROM Accounts WHERE id = @accountId');
+        if (accountCheck.recordset[0]?.type !== 'demo') throw new Error('Invalid demo account');
+
+        // Fetch prop account details (must be a demo challenge)
+        const propAccountResult = await pool.request()
+            .input('propAccountId', sql.UniqueIdentifier, propAccountId)
+            .query('SELECT tradingBalance, title, isDemo FROM PropAccounts WHERE id = @propAccountId');
+        if (!propAccountResult.recordset.length || !propAccountResult.recordset[0].isDemo) {
+            throw new Error('Invalid or non-demo prop account');
+        }
+        const { tradingBalance, title } = propAccountResult.recordset[0];
+
+        // Insert demo transaction (no depositAmount for demo)
+        const transactionResult = await pool.request()
+            .input('userId', sql.UniqueIdentifier, userId)
+            .input('accountId', sql.UniqueIdentifier, accountId)
+            .input('propAccountId', sql.UniqueIdentifier, propAccountId)
+            .input('tradingBalance', sql.Decimal(15, 2), tradingBalance)
+            .input('currentBalance', sql.Decimal(15, 2), tradingBalance)
+            .input('title', sql.VarChar(50), title)
+            .query(`
+                INSERT INTO PropTransactions (userId, accountId, propAccountId, depositAmount, tradingBalance, currentBalance, title, status, purchaseDate)
+                OUTPUT INSERTED.transactionId, INSERTED.userId, INSERTED.accountId, INSERTED.propAccountId, 
+                       INSERTED.depositAmount, INSERTED.tradingBalance, INSERTED.currentBalance, INSERTED.title, 
+                       INSERTED.status, INSERTED.purchaseDate
+                VALUES (@userId, @accountId, @propAccountId, 0.00, @tradingBalance, @currentBalance, @title, 'Phase I', GETDATE())
+            `);
+        return transactionResult.recordset[0];
+    }
+
+    async getUserDemoTransactions(userId: string) {
+        const pool = await poolPromise;
+        const result = await pool.request()
+            .input('userId', sql.UniqueIdentifier, userId)
+            .query(`
+                SELECT pt.transactionId, pt.userId, pt.accountId, pt.propAccountId, pt.depositAmount, 
+                       pt.tradingBalance, pt.currentBalance, pt.title, pt.status, pt.tradingDays, 
+                       pt.purchaseDate
+                FROM PropTransactions pt
+                INNER JOIN Accounts a ON pt.accountId = a.id
+                WHERE pt.userId = @userId AND a.type = 'demo'
+            `);
+        return result.recordset;
+            }    
 }

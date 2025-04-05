@@ -93,6 +93,18 @@ class AdminClient {
         return response.json();
     }
 
+    async fetchAllDemoTransactions() {
+        const response = await fetch(`${BASE_URL}/admin/prop-transactions/demo`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${this.token}`
+            }
+        });
+        if (!response.ok) throw new Error(await response.text());
+        return response.json();
+    }
+
     async createPropAccount(
         title: string,
         tradingBalance: number,
@@ -103,7 +115,8 @@ class AdminClient {
         maxTrailingDrawdown?: number,
         minTradingDays?: number,
         leverageMax?: string,
-        reEntryAllowed?: string
+        reEntryAllowed?: string,
+        isDemo: boolean = false
     ) {
         const response = await fetch(`${BASE_URL}/admin/prop-accounts/create`, {
             method: 'POST',
@@ -113,7 +126,7 @@ class AdminClient {
             },
             body: JSON.stringify({
                 title, tradingBalance, challengeFee, profitTargetPhase1, profitTargetPhase2,
-                dailyLossLimit, maxTrailingDrawdown, minTradingDays, leverageMax, reEntryAllowed
+                dailyLossLimit, maxTrailingDrawdown, minTradingDays, leverageMax, reEntryAllowed, isDemo
             })
         });
         if (!response.ok) throw new Error(await response.text());

@@ -99,3 +99,29 @@ export const startChallenge = async (req: Request, res: Response, next: NextFunc
         next(error);
     }
 };
+
+export const startDemoChallenge = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const { userId, accountId, propAccountId } = req.body;
+    try {
+        const hasActiveDemo = await accountService.hasActiveDemoChallenge(userId);
+        if (hasActiveDemo) {
+            res.status(403).json({ message: 'You already have an active demo challenge. Complete it first.' });
+            return;
+        }
+
+        const transaction = await accountService.startDemoChallenge(userId, accountId, propAccountId);
+        res.status(201).json({ message: 'Demo challenge started', transaction });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const getUserDemoTransactions = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const { userId } = req.params; // Assume userId comes from URL params
+    try {
+        const transactions = await accountService.getUserDemoTransactions(userId);
+        res.status(200).json({ transactions });
+    } catch (error) {
+        next(error);
+    }
+};

@@ -131,6 +131,39 @@
             color: green;
             text-align: center;
         }
+        .new-challenge-btn {
+    background-color: #28a745; /* Green for a "new" action */
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+.new-challenge-btn:hover {
+    background-color: #218838; /* Darker green on hover */
+    transform: scale(1.05); /* Slight scale-up effect */
+}
+.new-challenge-btn:active {
+    transform: scale(0.95); /* Slight press effect */
+}
+.status-completed {
+            color: #28a745; /* Green for Completed */
+            font-weight: bold;
+        }
+        .status-failed {
+            color: #dc3545; /* Red for Failed */
+            font-weight: bold;
+        }
+        .status-phase-i {
+            color: inherit; /* Default color for Phase I */
+        }
+        .status-phase-ii {
+            color: #fd7e14; /* Orange for Phase II */
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -139,8 +172,8 @@
         <ul>
             <li><a id="account-link" class="active">Account</a></li>
             <li><a id="challenges-link">Challenges</a></li>
+            <li><a id="demo-link">Demo Challenges</a></li>
             <li><a id="trades-link">Trades</a></li>
-            <li><a id="prop-link" href="prop.html">Start New Challenge</a></li>
             <li><a id="logout-link">Logout</a></li>
         </ul>
     </div>
@@ -163,6 +196,7 @@
 
         <div id="challenges-section" class="section">
             <h2>Active Challenges</h2>
+            <button class="new-challenge-btn" onclick="startNewLiveChallenge()">Start New Challenge</button>
             <table>
                 <thead>
                     <tr>
@@ -179,6 +213,27 @@
                 <tbody id="challenges-list"></tbody>
             </table>
         </div>
+
+        <section id="demo-challenges-section" class="section">
+            <h2>Demo Challenges</h2>
+            <button class="new-challenge-btn" onclick="startNewDemoChallenge()">Start New Challenge</button>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Transaction ID</th>
+                        <th>Title</th>
+                        <th>Trading Balance</th>
+                        <th>Current Balance</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="demo-challenges-list">
+                    <tr><td colspan="7" class="no-data">Loading...</td></tr>
+                </tbody>
+            </table>
+        </section>
 
         <div id="trades-section" class="section">
             <h2>Trade Transactions</h2>
@@ -220,22 +275,26 @@
 
         const accountLink = document.getElementById('account-link');
         const challengesLink = document.getElementById('challenges-link');
+        const demoLink = document.getElementById('demo-link');
         const tradesLink = document.getElementById('trades-link');
         const logoutLink = document.getElementById('logout-link');
 
         const accountSection = document.getElementById('account-section');
         const challengesSection = document.getElementById('challenges-section');
+        const demoChallengesSection = document.getElementById('demo-challenges-section');
         const tradesSection = document.getElementById('trades-section');
 
         function switchSection(sectionToShow) {
             accountSection.classList.remove('active');
             challengesSection.classList.remove('active');
+            demoChallengesSection.classList.remove('active');
             tradesSection.classList.remove('active');
             sectionToShow.classList.add('active');
         }
 
         accountLink.addEventListener('click', () => switchSection(accountSection));
         challengesLink.addEventListener('click', () => switchSection(challengesSection));
+        demoLink.addEventListener('click', () => switchSection(demoChallengesSection));
         tradesLink.addEventListener('click', () => switchSection(tradesSection));
         logoutLink.addEventListener('click', () => {
             localStorage.clear();
@@ -263,13 +322,31 @@
 
                 transactions.forEach(t => {
                     const row = document.createElement('tr');
+
+                    let statusClass = '';
+                    switch (t.status) {
+                        case 'Completed':
+                            statusClass = 'status-completed';
+                            break;
+                        case 'Failed':
+                            statusClass = 'status-failed';
+                            break;
+                        case 'Phase I':
+                            statusClass = 'status-phase-i';
+                            break;
+                        case 'Phase II':
+                            statusClass = 'status-phase-ii';
+                            break;
+                        default:
+                            statusClass = ''; // Fallback
+                    }
                     row.innerHTML = `
                         <td>${t.transactionId}</td>
                         <td>${t.title}</td>
                         <td>$${t.depositAmount.toLocaleString()}</td>
                         <td>$${t.tradingBalance.toLocaleString()}</td>
                         <td>$${t.currentBalance.toLocaleString()}</td>
-                        <td>${t.status}</td>
+                        <td class="${statusClass}">${t.status}</td>
                         <td>${new Date(t.purchaseDate).toLocaleDateString()}</td>
                         <td>
                             ${t.status === 'Completed' || t.status === 'Failed' ? 
@@ -283,6 +360,13 @@
                 challengesList.innerHTML = `<tr><td colspan="8" class="no-data">${error.message || 'Failed to load challenges'}</td></tr>`;
             }
         }
+
+        function startNewLiveChallenge() {
+        setTimeout(() => {
+            window.location.href = 'prop.html';
+        }, 2000);
+    
+}
 
         async function loadTradeTransactions() {
     const tradeTransactionsList = document.getElementById('trade-transactions-list');
@@ -307,6 +391,67 @@
     }
 }
 
+async function loadDemoChallenges() {
+        const demoChallengesList = document.getElementById('demo-challenges-list');
+        try {
+            const userId = jwt_decode(token).id;
+            console.log('Fetching demo transactions for userId:', userId); // Debug
+
+            // Use the new endpoint to get demo transactions directly
+            const demoTransactions = await client.getUserDemoTransactions(userId);
+            console.log('Fetched demo transactions:', demoTransactions); // Debug
+
+            demoChallengesList.innerHTML = demoTransactions.length
+                ? ''
+                : '<tr><td colspan="7" class="no-data">No demo challenges</td></tr>';
+
+            demoTransactions.forEach(t => {
+                const row = document.createElement('tr');
+
+                let statusClass = '';
+                    switch (t.status) {
+                        case 'Completed':
+                            statusClass = 'status-completed';
+                            break;
+                        case 'Failed':
+                            statusClass = 'status-failed';
+                            break;
+                        case 'Phase I':
+                            statusClass = 'status-phase-i';
+                            break;
+                        case 'Phase II':
+                            statusClass = 'status-phase-ii';
+                            break;
+                        default:
+                            statusClass = ''; // Fallback
+                    }
+                row.innerHTML = `
+                    <td>${t.transactionId}</td>
+                    <td>${t.title}</td>
+                    <td>$${t.tradingBalance.toLocaleString()}</td>
+                    <td>$${t.currentBalance.toLocaleString()}</td>
+                    <td class="${statusClass}">${t.status}</td>
+                    <td>${new Date(t.purchaseDate).toLocaleDateString()}</td>
+                    <td>${t.status === 'Completed' || t.status === 'Failed' 
+                        ? 'N/A' 
+                        : `<button class="simulate-btn" onclick="showTradeModal('${t.accountId}', '${t.transactionId}')">Simulate Trade</button>`}</td>
+                `;
+                demoChallengesList.appendChild(row);
+            });
+        } catch (error) {
+            console.error('Error loading demo challenges:', error); // Debug
+            demoChallengesList.innerHTML = `<tr><td colspan="7" class="no-data">${error.message || 'Failed to load demo challenges'}</td></tr>`;
+        }
+    }
+
+    function startNewDemoChallenge() {
+        setTimeout(() => {
+            window.location.href = 'demo.html';
+        }, 2000);
+    
+}
+
+
         function showTradeModal(accountId, transactionId) {
             const modal = document.getElementById('tradeModal');
             const tradeAmount = document.getElementById('tradeAmount');
@@ -330,6 +475,7 @@
                         modal.style.display = 'none';
                         loadChallenges();
                         loadTradeTransactions();
+                        loadDemoChallenges();
                     }, 2000);
                 } catch (error) {
                     tradeMessage.className = 'modal-error';
@@ -346,6 +492,7 @@
             loadUserDetails();
             loadChallenges();
             loadTradeTransactions();
+            loadDemoChallenges();
         });
     </script>
 </body>

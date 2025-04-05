@@ -105,25 +105,32 @@ export class AdminService {
         maxTrailingDrawdown: number = 10.00,
         minTradingDays: number = 5,
         leverageMax: string = '200:1',
-        reEntryAllowed: string = 'Yes at 50% of Fee'
+        reEntryAllowed: string = 'Yes at 50% of Fee',
+        isDemo: boolean = false
     ) {
         const { error } = Joi.object({
             title: Joi.string().max(50).required(),
             tradingBalance: Joi.number().positive().required(),
-            challengeFee: Joi.number().positive().required(),
+            challengeFee: Joi.number().min(0).required(), // Allows 0 for demo
             profitTargetPhase1: Joi.number().positive().max(100).default(10.00),
             profitTargetPhase2: Joi.number().positive().max(100).default(7.50),
             dailyLossLimit: Joi.number().positive().max(100).default(5.00),
             maxTrailingDrawdown: Joi.number().positive().max(100).default(10.00),
             minTradingDays: Joi.number().integer().positive().default(5),
             leverageMax: Joi.string().max(10).default('200:1'),
-            reEntryAllowed: Joi.string().max(20).default('Yes at 50% of Fee')
+            reEntryAllowed: Joi.string().max(20).default('Yes at 50% of Fee'),
+            isDemo: Joi.boolean().default(false)
         }).validate({
             title, tradingBalance, challengeFee, profitTargetPhase1, profitTargetPhase2,
-            dailyLossLimit, maxTrailingDrawdown, minTradingDays, leverageMax, reEntryAllowed
+            dailyLossLimit, maxTrailingDrawdown, minTradingDays, leverageMax, reEntryAllowed, isDemo
         });
         if (error) throw new Error(error.details[0].message);
-    
+
+        // Additional validation: challengeFee must be 0 if isDemo is true
+        if (isDemo && challengeFee !== 0) {
+            throw new Error('Challenge fee must be 0 for demo accounts');
+        }
+
         const pool = await poolPromise;
         const id = uuidv4();
         const result = await pool.request()
@@ -138,6 +145,7 @@ export class AdminService {
             .input('minTradingDays', sql.Int, minTradingDays)
             .input('leverageMax', sql.VarChar, leverageMax)
             .input('reEntryAllowed', sql.VarChar, reEntryAllowed)
+            .input('isDemo', sql.Bit, isDemo)
             .execute('sp_CreatePropAccount');
         return result.recordset[0];
     }
@@ -193,6 +201,20 @@ export class AdminService {
     async getAllPropAccounts() {
         const pool = await poolPromise;
         const result = await pool.request().execute('sp_GetAllPropAccounts');
+        return result.recordset;
+    }
+
+    async getAllDemoTransactions() {
+        const pool = await poolPromise;
+        const result = await pool.request()
+            .query(`
+                SELECT pt.transactionId, pt.userId, pt.accountId, pt.propAccountId, pt.depositAmount, 
+                       pt.tradingBalance, pt.currentBalance, pt.title, pt.status, pt.tradingDays, 
+                       pt.purchaseDate
+                FROM PropTransactions pt
+                INNER JOIN Accounts a ON pt.accountId = a.id
+                WHERE a.type = 'demo'
+            `);
         return result.recordset;
     }
 }

@@ -91,6 +91,22 @@ class AccountClient {
             return data.result;
         });
     }
+    startDemoChallenge(userId, accountId, propAccountId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const response = yield fetch(`${API_URL}/accounts/demo-challenges/start`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${this.token}`
+                },
+                body: JSON.stringify({ userId, accountId, propAccountId })
+            });
+            if (!response.ok)
+                throw new Error(yield response.text());
+            const data = yield response.json();
+            return data.transaction;
+        });
+    }
     getUserTradeTransactions(userId) {
         return __awaiter(this, void 0, void 0, function* () {
             const response = yield fetch(`${API_URL}/accounts/trade-transactions/${userId}`, {
@@ -104,6 +120,40 @@ class AccountClient {
                 throw new Error(yield response.text());
             const data = yield response.json();
             return data.trades;
+        });
+    }
+    getAccount(accountId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const response = yield fetch(`${API_URL}/accounts/${accountId}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${this.token}`
+                }
+            });
+            if (!response.ok) {
+                const errorText = yield response.text();
+                throw new Error(`Failed to fetch account ${accountId}: ${errorText}`);
+            }
+            const data = yield response.json();
+            if (!data.account)
+                throw new Error(`No account data returned for ${accountId}`);
+            return data.account; // Must return { id, type, userId, isActive }
+        });
+    }
+    getUserDemoTransactions(userId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const response = yield fetch(`${API_URL}/accounts/transactions/demo/${userId}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${this.token}`
+                }
+            });
+            if (!response.ok)
+                throw new Error(yield response.text());
+            const data = yield response.json();
+            return data.transactions;
         });
     }
 }

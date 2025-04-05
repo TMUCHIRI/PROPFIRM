@@ -71,6 +71,20 @@ class AccountClient {
         return data.result;
     }
 
+    async startDemoChallenge(userId: string, accountId: string, propAccountId: string): Promise<any> {
+        const response = await fetch(`${API_URL}/accounts/demo-challenges/start`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${this.token}`
+            },
+            body: JSON.stringify({ userId, accountId, propAccountId })
+        });
+        if (!response.ok) throw new Error(await response.text());
+        const data = await response.json();
+        return data.transaction;
+    }
+
     async getUserTradeTransactions(userId: string): Promise<any[]> {
         const response = await fetch(`${API_URL}/accounts/trade-transactions/${userId}`, {
             method: 'GET',
@@ -82,6 +96,36 @@ class AccountClient {
         if (!response.ok) throw new Error(await response.text());
         const data = await response.json();
         return data.trades;
+    }
+
+    async getAccount(accountId: string): Promise<{ id: string; type: string; userId: string; isActive: boolean }> {
+        const response = await fetch(`${API_URL}/accounts/${accountId}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${this.token}`
+            }
+        });
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Failed to fetch account ${accountId}: ${errorText}`);
+        }
+        const data = await response.json();
+        if (!data.account) throw new Error(`No account data returned for ${accountId}`);
+        return data.account; // Must return { id, type, userId, isActive }
+    }
+
+    async getUserDemoTransactions(userId: string): Promise<any[]> {
+        const response = await fetch(`${API_URL}/accounts/transactions/demo/${userId}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${this.token}`
+            }
+        });
+        if (!response.ok) throw new Error(await response.text());
+        const data = await response.json();
+        return data.transactions;
     }
 }
 

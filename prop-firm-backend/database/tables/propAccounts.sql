@@ -14,6 +14,9 @@ CREATE TABLE PropAccounts (
     updatedAt DATETIME DEFAULT GETDATE()
 );
 
+ALTER TABLE PropAccounts
+ADD isDemo BIT NOT NULL DEFAULT 0; -- 0 = prop challenge, 1 = demo challenge
+
 
 SELECT * FROM PropAccounts;
 

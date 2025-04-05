@@ -1,5 +1,5 @@
 import express from 'express';
-import { getAllUsers, getAllAccounts, getAllTrades, getDashboardStats, toggleAccountStatus, changeUserRole, createPropAccount, getAllPropAccounts, updatePropAccount, accountStatus } from '../controllers/adminController';
+import { getAllUsers, getAllAccounts, getAllTrades, getDashboardStats, toggleAccountStatus, changeUserRole, createPropAccount, getAllPropAccounts, updatePropAccount, accountStatus, getAllDemoTransactions } from '../controllers/adminController';
 import jwt from 'jsonwebtoken';
 import { CustomJwtPayload } from '../../types';
 
@@ -40,5 +40,6 @@ router.patch('/change-role', authMiddleware, adminMiddleware, changeUserRole); /
 router.post('/prop-accounts/create', authMiddleware, adminMiddleware, createPropAccount);
 router.put('/prop-accounts/:id', authMiddleware, adminMiddleware, updatePropAccount);
 router.get('/prop-accounts/get-all-accounts', authMiddleware, getAllPropAccounts); // Allow users to fetch for display
+router.get('/prop-transactions/demo', authMiddleware, adminMiddleware, getAllDemoTransactions);
 
 export default router;

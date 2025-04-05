@@ -245,6 +245,8 @@
         <!-- Trades Section -->
         <div id="trades-section" class="section">
             <h2>Prop Transactions</h2>
+            <!-- Live Transactions Table -->
+            <h3>Live Transactions</h3>
             <table>
                 <thead>
                     <tr>
@@ -258,13 +260,32 @@
                         <th>Date</th>
                     </tr>
                 </thead>
-                <tbody id="trades-table-body">
-                    <tr><td colspan="7" class="no-data">Loading...</td></tr>
+                <tbody id="live-trades-table-body">
+                    <tr><td colspan="8" class="no-data">Loading...</td></tr>
+                </tbody>
+            </table>
+            <!-- Demo Transactions Table -->
+            <h3 style="margin-top: 20px;">Demo Transactions</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Transaction ID</th>
+                        <th>User Email</th>
+                        <th>Prop Title</th>
+                        <th>Deposit Amount</th>
+                        <th>Trading Balance</th>
+                        <th>Current Balance</th>
+                        <th>Account ID</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody id="demo-trades-table-body">
+                    <tr><td colspan="8" class="no-data">Loading...</td></tr>
                 </tbody>
             </table>
         </div>
 
-        <!-- Users Section (Replaces Payouts) -->
+        <!-- Users Section -->
         <div id="users-section" class="section">
             <h2>All Users</h2>
             <table>
@@ -283,15 +304,17 @@
             </table>
         </div>
 
-        <!-- New Props Section -->
+        <!-- Props Section -->
         <div id="props-section" class="section">
             <h2>Prop Accounts</h2>
             <button class="btn" id="createPropBtn">Create New Prop Account</button>
+            <button class="btn" id="createDemoPropBtn">Create Demo Challenge</button>
             <table>
                 <thead>
                     <tr>
                         <th>ID</th>
                         <th>Title</th>
+                        <th>Type</th>
                         <th>Trading Balance</th>
                         <th>Challenge Fee</th>
                         <th>Phase 1 Target (%)</th>
@@ -305,32 +328,32 @@
                     </tr>
                 </thead>
                 <tbody id="props-table-body">
-                    <tr><td colspan="12" class="no-data">Loading...</td></tr>
+                    <tr><td colspan="13" class="no-data">Loading...</td></tr>
                 </tbody>
             </table>
         </div>
 
-        <!-- Modal for Creating/Updating Prop Account -->
-        <div id="propModal" class="modal">
+        <!-- Modal for Creating Prop/Demo Account -->
+        <div id="createModal" class="modal">
             <div class="modal-content">
-                <h2 id="modalTitle">Create Prop Account</h2>
-                <input type="text" id="propTitle" placeholder="Title (e.g., Beginner)">
-                <input type="number" id="propTradingBalance" placeholder="Trading Balance (e.g., 5000)" step="0.01">
-                <input type="number" id="propChallengeFee" placeholder="Challenge Fee (e.g., 49)" step="0.01">
-                <input type="number" id="propProfitTargetPhase1" placeholder="Phase 1 Profit Target (%) (default: 10)" step="0.01">
-                <input type="number" id="propProfitTargetPhase2" placeholder="Phase 2 Profit Target (%) (default: 7.5)" step="0.01">
-                <input type="number" id="propDailyLossLimit" placeholder="Daily Loss Limit (%) (default: 5)" step="0.01">
-                <input type="number" id="propMaxTrailingDrawdown" placeholder="Max Trailing Drawdown (%) (default: 10)" step="0.01">
-                <input type="number" id="propMinTradingDays" placeholder="Min Trading Days (default: 5)">
-                <input type="text" id="propLeverageMax" placeholder="Max Leverage (default: 200:1)">
-                <input type="text" id="propReEntryAllowed" placeholder="Re-Entry Allowed (default: Yes at 50% of Fee)">
-                <p id="modalError" class="modal-error"></p>
-                <button class="btn" id="savePropBtn">Save</button>
-                <button class="btn btn-danger" id="cancelPropBtn">Cancel</button>
+                <h2 id="createModalTitle">Create Prop Account</h2>
+                <input type="text" id="createPropTitle" placeholder="Title (e.g., Beginner)">
+                <input type="number" id="createPropTradingBalance" placeholder="Trading Balance (e.g., 5000)" step="0.01">
+                <input type="number" id="createPropChallengeFee" placeholder="Challenge Fee (e.g., 49)" step="0.01">
+                <input type="number" id="createPropProfitTargetPhase1" placeholder="Phase 1 Profit Target (%) (default: 10)" step="0.01">
+                <input type="number" id="createPropProfitTargetPhase2" placeholder="Phase 2 Profit Target (%) (default: 7.5)" step="0.01">
+                <input type="number" id="createPropDailyLossLimit" placeholder="Daily Loss Limit (%) (default: 5)" step="0.01">
+                <input type="number" id="createPropMaxTrailingDrawdown" placeholder="Max Trailing Drawdown (%) (default: 10)" step="0.01">
+                <input type="number" id="createPropMinTradingDays" placeholder="Min Trading Days (default: 5)">
+                <input type="text" id="createPropLeverageMax" placeholder="Max Leverage (default: 200:1)">
+                <input type="text" id="createPropReEntryAllowed" placeholder="Re-Entry Allowed (default: Yes at 50% of Fee)">
+                <p id="createModalError" class="modal-error"></p>
+                <button class="btn" id="saveCreateBtn">Save</button>
+                <button class="btn btn-danger" id="cancelCreateBtn">Cancel</button>
             </div>
         </div>
 
-                <!-- Modal for Toggling Account Status -->
+        <!-- Modal for Toggling Account Status -->
         <div id="toggleAccountModal" class="modal">
             <div class="modal-content">
                 <h2 id="toggleAccountModalTitle">Confirm Action</h2>
@@ -353,17 +376,24 @@
         </div>
 
         <!-- Modal for Updating Prop Account -->
-        <div id="updatePropModal" class="modal">
+        <div id="updateModal" class="modal">
             <div class="modal-content">
-                <h2 id="updatePropModalTitle">Update Prop Account</h2>
+                <h2 id="updateModalTitle">Update Prop Account</h2>
                 <input type="text" id="updatePropTitle" placeholder="Title (e.g., Beginner)">
-                <input type="number" id="updatePropTradingBalance" placeholder="Trading Balance (e.g., 5000)">
-                <input type="number" id="updatePropChallengeFee" placeholder="Challenge Fee (e.g., 49)">
-                <p id="updatePropModalError" class="modal-error"></p>
-                <button class="btn" id="saveUpdatePropBtn">Save</button>
-                <button class="btn btn-danger" id="cancelUpdatePropBtn">Cancel</button>
+                <input type="number" id="updatePropTradingBalance" placeholder="Trading Balance (e.g., 5000)" step="0.01">
+                <input type="number" id="updatePropChallengeFee" placeholder="Challenge Fee (e.g., 49)" step="0.01">
+                <input type="number" id="updatePropProfitTargetPhase1" placeholder="Phase 1 Profit Target (%) (default: 10)" step="0.01">
+                <input type="number" id="updatePropProfitTargetPhase2" placeholder="Phase 2 Profit Target (%) (default: 7.5)" step="0.01">
+                <input type="number" id="updatePropDailyLossLimit" placeholder="Daily Loss Limit (%) (default: 5)" step="0.01">
+                <input type="number" id="updatePropMaxTrailingDrawdown" placeholder="Max Trailing Drawdown (%) (default: 10)" step="0.01">
+                <input type="number" id="updatePropMinTradingDays" placeholder="Min Trading Days (default: 5)">
+                <input type="text" id="updatePropLeverageMax" placeholder="Max Leverage (default: 200:1)">
+                <input type="text" id="updatePropReEntryAllowed" placeholder="Re-Entry Allowed (default: Yes at 50% of Fee)">
+                <p id="updateModalError" class="modal-error"></p>
+                <button class="btn" id="saveUpdateBtn">Save</button>
+                <button class="btn btn-danger" id="cancelUpdateBtn">Cancel</button>
             </div>
-    </div>
+        </div>
 
         <!-- Settings Section -->
         <div id="settings-section" class="section">
@@ -375,7 +405,7 @@
 
     <script src="dist/adminClient.js"></script>
     <script>
-        // Section switching logic (unchanged)
+        // Section switching logic
         const overviewLink = document.getElementById('overview-link');
         const tradersLink = document.getElementById('traders-link');
         const tradesLink = document.getElementById('trades-link');
@@ -410,10 +440,10 @@
 
         // Admin client integration
         const token = localStorage.getItem('token');
-            if (!token) {
-                            window.location.href = 'clientlogin.html'; // Redirect to login if no token
-                            throw new Error('No token found');
-                        }
+        if (!token) {
+            window.location.href = 'clientlogin.html';
+            throw new Error('No token found');
+        }
         const client = adminClient(token);
 
         // Fetch and display overview stats
@@ -429,59 +459,72 @@
                 document.getElementById('active-trades').textContent = 'Error';
                 document.getElementById('total-balance').textContent = 'Error';
             }
-}
+        }
 
         // Fetch and display traders (users with live accounts)
         async function loadTraders() {
-        try {
-            const { accounts } = await client.fetchAllAccounts();
-            const { users } = await client.fetchAllUsers();
-            const liveAccounts = accounts.filter(acc => acc.type === 'live');
-        
-        // Deduplicate by userId
-            const uniqueTraders = new Map();
-            liveAccounts.forEach(account => {
-                if (!uniqueTraders.has(account.userId)) {
-                    uniqueTraders.set(account.userId, account);
-                }
-            });
+            try {
+                const { accounts } = await client.fetchAllAccounts();
+                const { users } = await client.fetchAllUsers();
+                const liveAccounts = accounts.filter(acc => acc.type === 'live');
+                
+                const uniqueTraders = new Map();
+                liveAccounts.forEach(account => {
+                    if (!uniqueTraders.has(account.userId)) {
+                        uniqueTraders.set(account.userId, account);
+                    }
+                });
 
-            const tradersTableBody = document.getElementById('traders-table-body');
-            tradersTableBody.innerHTML = uniqueTraders.size ? '' : '<tr><td colspan="6" class="no-data">No live accounts</td></tr>';
+                const tradersTableBody = document.getElementById('traders-table-body');
+                tradersTableBody.innerHTML = uniqueTraders.size ? '' : '<tr><td colspan="6" class="no-data">No live accounts</td></tr>';
 
-            uniqueTraders.forEach((account, userId) => {
-                const user = users.find(u => u.id === userId);
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${userId}</td>
-                    <td>${user ? user.username : 'Unknown'}</td>
-                    <td>${user ? user.email : 'Unknown'}</td>
-                    <td>${user ? (user.isActive ? 'Active' : 'Inactive') : 'Unknown'}</td>
-                    <td>${account.isActive ? 'Active' : 'Inactive'}</td>
-                    <td>
-                        <button class="btn ${account.isActive ? 'btn-danger' : 'btn-success'}" 
-                                onclick="toggleAccount('${account.id}', ${!account.isActive})">
-                            ${account.isActive ? 'Deactivate' : 'Activate'}
-                        </button>
-                    </td>
-                `;
-                tradersTableBody.appendChild(row);
-            });
-    }   catch (error) {
-        console.error('Error fetching traders:', error.message);
-        document.getElementById('traders-table-body').innerHTML = `<tr><td colspan="6" style="color: red;">${error.message}</td></tr>`;
-    }
-}
+                uniqueTraders.forEach((account, userId) => {
+                    const user = users.find(u => u.id === userId);
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${userId}</td>
+                        <td>${user ? user.username : 'Unknown'}</td>
+                        <td>${user ? user.email : 'Unknown'}</td>
+                        <td>${user ? (user.isActive ? 'Active' : 'Inactive') : 'Unknown'}</td>
+                        <td>${account.isActive ? 'Active' : 'Inactive'}</td>
+                        <td>
+                            <button class="btn ${account.isActive ? 'btn-danger' : 'btn-success'}" 
+                                    onclick="toggleAccount('${account.id}', ${!account.isActive})">
+                                ${account.isActive ? 'Deactivate' : 'Activate'}
+                            </button>
+                        </td>
+                    `;
+                    tradersTableBody.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Error fetching traders:', error.message);
+                document.getElementById('traders-table-body').innerHTML = `<tr><td colspan="6" style="color: red;">${error.message}</td></tr>`;
+            }
+        }
 
         // Fetch and display trades
         async function loadTrades() {
-            try {
-                const { transactions } = await client.fetchAllTransactions();
-                const { users } = await client.fetchAllUsers();
-                const tradesTableBody = document.getElementById('trades-table-body');
-                tradesTableBody.innerHTML = transactions.length ? '' : '<tr><td colspan="7" class="no-data">No transactions</td></tr>';
+            const liveTradesTableBody = document.getElementById('live-trades-table-body');
+            const demoTradesTableBody = document.getElementById('demo-trades-table-body');
 
-                transactions.forEach(transaction => {
+            try {
+                // Fetch all transactions (for live)
+                const { transactions: allTransactions } = await client.fetchAllTransactions();
+                const { users } = await client.fetchAllUsers();
+                const { accounts } = await client.fetchAllAccounts();
+
+                // Filter live transactions
+                const liveTransactions = allTransactions.filter(t => {
+                    const account = accounts.find(a => a.id === t.accountId);
+                    return account && account.type === 'live';
+                });
+
+                // Populate live transactions table
+                liveTradesTableBody.innerHTML = liveTransactions.length 
+                    ? '' 
+                    : '<tr><td colspan="8" class="no-data">No live transactions</td></tr>';
+
+                liveTransactions.forEach(transaction => {
                     const user = users.find(u => u.id === transaction.userId);
                     const row = document.createElement('tr');
                     row.innerHTML = `
@@ -494,11 +537,36 @@
                         <td>${transaction.accountId}</td>
                         <td>${new Date(transaction.purchaseDate).toLocaleDateString()}</td>
                     `;
-                    tradesTableBody.appendChild(row);
+                    liveTradesTableBody.appendChild(row);
+                });
+
+                // Fetch demo transactions
+                const { transactions: demoTransactions } = await client.fetchAllDemoTransactions();
+
+                // Populate demo transactions table
+                demoTradesTableBody.innerHTML = demoTransactions.length 
+                    ? '' 
+                    : '<tr><td colspan="8" class="no-data">No demo transactions</td></tr>';
+
+                demoTransactions.forEach(transaction => {
+                    const user = users.find(u => u.id === transaction.userId);
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${transaction.transactionId}</td>
+                        <td>${user ? user.email : 'Unknown'}</td>
+                        <td>${transaction.title}</td>
+                        <td>$${transaction.depositAmount.toLocaleString()}</td>
+                        <td>$${transaction.tradingBalance.toLocaleString()}</td>
+                        <td>$${transaction.currentBalance.toLocaleString()}</td>
+                        <td>${transaction.accountId}</td>
+                        <td>${new Date(transaction.purchaseDate).toLocaleDateString()}</td>
+                    `;
+                    demoTradesTableBody.appendChild(row);
                 });
             } catch (error) {
                 console.error('Error fetching transactions:', error.message);
-                tradesTableBody.innerHTML = `<tr><td colspan="7" class="no-data">${error.message || 'Failed to load transactions'}</td></tr>`;
+                liveTradesTableBody.innerHTML = `<tr><td colspan="8" class="no-data">${error.message || 'Failed to load live transactions'}</td></tr>`;
+                demoTradesTableBody.innerHTML = `<tr><td colspan="8" class="no-data">${error.message || 'Failed to load demo transactions'}</td></tr>`;
             }
         }
 
@@ -532,233 +600,294 @@
         }
 
         // Toggle account status
-    async function toggleAccount(id, isActive) {
-    const modal = document.getElementById('toggleAccountModal');
-    const title = document.getElementById('toggleAccountModalTitle');
-    const message = document.getElementById('toggleAccountModalMessage');
-    const result = document.getElementById('toggleAccountModalResult');
-    const confirmBtn = document.getElementById('confirmToggleAccountBtn');
-    const cancelBtn = document.getElementById('cancelToggleAccountBtn');
+        async function toggleAccount(id, isActive) {
+            const modal = document.getElementById('toggleAccountModal');
+            const title = document.getElementById('toggleAccountModalTitle');
+            const message = document.getElementById('toggleAccountModalMessage');
+            const result = document.getElementById('toggleAccountModalResult');
+            const confirmBtn = document.getElementById('confirmToggleAccountBtn');
+            const cancelBtn = document.getElementById('cancelToggleAccountBtn');
 
-    title.textContent = `Confirm ${isActive ? 'Activation' : 'Deactivation'}`;
-    message.textContent = `Are you sure you want to ${isActive ? 'activate' : 'deactivate'} this live account?`;
-    result.textContent = '';
-    result.className = 'modal-result';
-    modal.style.display = 'flex';
+            title.textContent = `Confirm ${isActive ? 'Activation' : 'Deactivation'}`;
+            message.textContent = `Are you sure you want to ${isActive ? 'activate' : 'deactivate'} this live account?`;
+            result.textContent = '';
+            result.className = 'modal-result';
+            modal.style.display = 'flex';
 
-    confirmBtn.onclick = async () => {
-        try {
-            const response = await client.toggleAccountStatus(id, isActive);
-            result.className = 'modal-result success';
-            result.textContent = response.message;
-            // confirmBtn.style.display = 'none';
-            setTimeout(() => {
-                modal.style.display = 'none';
-                loadTraders();
-            }, 2000);
-        } catch (error) {
-            result.className = 'modal-result error';
-            result.textContent = error.message || 'Error toggling account';
+            confirmBtn.onclick = async () => {
+                try {
+                    const response = await client.toggleAccountStatus(id, isActive);
+                    result.className = 'modal-result success';
+                    result.textContent = response.message;
+                    setTimeout(() => {
+                        modal.style.display = 'none';
+                        loadTraders();
+                    }, 2000);
+                } catch (error) {
+                    result.className = 'modal-result error';
+                    result.textContent = error.message || 'Error toggling account';
+                }
+            };
+
+            cancelBtn.onclick = () => modal.style.display = 'none';
         }
-    };
-
-    cancelBtn.onclick = () => {
-        modal.style.display = 'none';
-    };
-}
 
         // Change user role
         async function changeRole(userId, role) {
-    const modal = document.getElementById('changeRoleModal');
-    const title = document.getElementById('changeRoleModalTitle');
-    const message = document.getElementById('changeRoleModalMessage');
-    const result = document.getElementById('changeRoleModalResult');
-    const confirmBtn = document.getElementById('confirmChangeRoleBtn');
-    const cancelBtn = document.getElementById('cancelChangeRoleBtn');
+            const modal = document.getElementById('changeRoleModal');
+            const title = document.getElementById('changeRoleModalTitle');
+            const message = document.getElementById('changeRoleModalMessage');
+            const result = document.getElementById('changeRoleModalResult');
+            const confirmBtn = document.getElementById('confirmChangeRoleBtn');
+            const cancelBtn = document.getElementById('cancelChangeRoleBtn');
 
-    title.textContent = `Confirm Role Change to ${role}`;
-    message.textContent = `Are you sure you want to change this user's role to ${role}?`;
-    result.textContent = '';
-    result.className = 'modal-result';
-    modal.style.display = 'flex';
+            title.textContent = `Confirm Role Change to ${role}`;
+            message.textContent = `Are you sure you want to change this user's role to ${role}?`;
+            result.textContent = '';
+            result.className = 'modal-result';
+            modal.style.display = 'flex';
 
-    confirmBtn.onclick = async () => {
-        try {
-            const response = await client.changeUserRole(userId, role);
-            result.className = 'modal-result success';
-            result.textContent = response.message;
-            // confirmBtn.style.display = 'none';
-            setTimeout(() => {
-                modal.style.display = 'none';
-                loadUsers();
-            }, 2000);
-        } catch (error) {
-            result.className = 'modal-result error';
-            result.textContent = error.message || 'Error changing role';
+            confirmBtn.onclick = async () => {
+                try {
+                    const response = await client.changeUserRole(userId, role);
+                    result.className = 'modal-result success';
+                    result.textContent = response.message;
+                    setTimeout(() => {
+                        modal.style.display = 'none';
+                        loadUsers();
+                    }, 2000);
+                } catch (error) {
+                    result.className = 'modal-result error';
+                    result.textContent = error.message || 'Error changing role';
+                }
+            };
+
+            cancelBtn.onclick = () => modal.style.display = 'none';
         }
-    };
 
-    cancelBtn.onclick = () => {
-        modal.style.display = 'none';
-    };
-}
+        // Fetch and display prop accounts
+        async function loadProps() {
+            try {
+                const { propAccounts } = await client.fetchAllPropAccounts();
+                const propsTableBody = document.getElementById('props-table-body');
+                propsTableBody.innerHTML = propAccounts.length ? '' : '<tr><td colspan="13" class="no-data">No prop accounts</td></tr>';
 
-async function loadProps() {
-        try {
-            const { propAccounts } = await client.fetchAllPropAccounts();
-            const propsTableBody = document.getElementById('props-table-body');
-            propsTableBody.innerHTML = propAccounts.length ? '' : '<tr><td colspan="12" class="no-data">No prop accounts</td></tr>';
-
-            propAccounts.forEach(account => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${account.id}</td>
-                    <td>${account.title}</td>
-                    <td>$${account.tradingBalance.toLocaleString()}</td>
-                    <td>$${account.challengeFee.toLocaleString()}</td>
-                    <td>${account.profitTargetPhase1}%</td>
-                    <td>${account.profitTargetPhase2}%</td>
-                    <td>${account.dailyLossLimit}%</td>
-                    <td>${account.maxTrailingDrawdown}%</td>
-                    <td>${account.minTradingDays}</td>
-                    <td>${account.leverageMax}</td>
-                    <td>${account.reEntryAllowed}</td>
-                    <td><button class="btn" onclick="showUpdateModal('${account.id}', '${account.title}', ${account.tradingBalance}, ${account.challengeFee}, ${account.profitTargetPhase1}, ${account.profitTargetPhase2}, ${account.dailyLossLimit}, ${account.maxTrailingDrawdown}, ${account.minTradingDays}, '${account.leverageMax}', '${account.reEntryAllowed}')">Update</button></td>
-                `;
-                propsTableBody.appendChild(row);
-            });
-        } catch (error) {
-            console.error('Error fetching prop accounts:', error.message);
-            document.getElementById('props-table-body').innerHTML = `<tr><td colspan="12" class="no-data">${error.message}</td></tr>`;
+                propAccounts.forEach(account => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${account.id}</td>
+                        <td>${account.title}</td>
+                        <td>${account.isDemo ? 'Demo' : 'Prop'}</td>
+                        <td>$${account.tradingBalance.toLocaleString()}</td>
+                        <td>$${account.challengeFee.toLocaleString()}</td>
+                        <td>${account.profitTargetPhase1}%</td>
+                        <td>${account.profitTargetPhase2}%</td>
+                        <td>${account.dailyLossLimit}%</td>
+                        <td>${account.maxTrailingDrawdown}%</td>
+                        <td>${account.minTradingDays}</td>
+                        <td>${account.leverageMax}</td>
+                        <td>${account.reEntryAllowed}</td>
+                        <td><button class="btn" onclick="showUpdateModal('${account.id}', '${account.title}', ${account.tradingBalance}, ${account.challengeFee}, ${account.profitTargetPhase1}, ${account.profitTargetPhase2}, ${account.dailyLossLimit}, ${account.maxTrailingDrawdown}, ${account.minTradingDays}, '${account.leverageMax}', '${account.reEntryAllowed}')">Update</button></td>
+                    `;
+                    propsTableBody.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Error fetching prop accounts:', error.message);
+                document.getElementById('props-table-body').innerHTML = `<tr><td colspan="13" class="no-data">${error.message}</td></tr>`;
+            }
         }
-    }
 
-    // Modal functions
-    function showCreateModal() {
-        const modal = document.getElementById('propModal');
-        const modalTitle = document.getElementById('modalTitle');
-        const propTitle = document.getElementById('propTitle');
-        const propTradingBalance = document.getElementById('propTradingBalance');
-        const propChallengeFee = document.getElementById('propChallengeFee');
-        const propProfitTargetPhase1 = document.getElementById('propProfitTargetPhase1');
-        const propProfitTargetPhase2 = document.getElementById('propProfitTargetPhase2');
-        const propDailyLossLimit = document.getElementById('propDailyLossLimit');
-        const propMaxTrailingDrawdown = document.getElementById('propMaxTrailingDrawdown');
-        const propMinTradingDays = document.getElementById('propMinTradingDays');
-        const propLeverageMax = document.getElementById('propLeverageMax');
-        const propReEntryAllowed = document.getElementById('propReEntryAllowed');
-        const modalError = document.getElementById('modalError');
+        // Modal functions
+        function showPropCreateModal() {
+            const modal = document.getElementById('createModal');
+            const modalTitle = document.getElementById('createModalTitle');
+            const propTitle = document.getElementById('createPropTitle');
+            const propTradingBalance = document.getElementById('createPropTradingBalance');
+            const propChallengeFee = document.getElementById('createPropChallengeFee');
+            const propProfitTargetPhase1 = document.getElementById('createPropProfitTargetPhase1');
+            const propProfitTargetPhase2 = document.getElementById('createPropProfitTargetPhase2');
+            const propDailyLossLimit = document.getElementById('createPropDailyLossLimit');
+            const propMaxTrailingDrawdown = document.getElementById('createPropMaxTrailingDrawdown');
+            const propMinTradingDays = document.getElementById('createPropMinTradingDays');
+            const propLeverageMax = document.getElementById('createPropLeverageMax');
+            const propReEntryAllowed = document.getElementById('createPropReEntryAllowed');
+            const modalError = document.getElementById('createModalError');
 
-        modalTitle.textContent = 'Create Prop Account';
-        propTitle.value = '';
-        propTradingBalance.value = '';
-        propChallengeFee.value = '';
-        propProfitTargetPhase1.value = '';
-        propProfitTargetPhase2.value = '';
-        propDailyLossLimit.value = '';
-        propMaxTrailingDrawdown.value = '';
-        propMinTradingDays.value = '';
-        propLeverageMax.value = '';
-        propReEntryAllowed.value = '';
-        modalError.textContent = '';
-        modal.style.display = 'flex';
+            modalTitle.textContent = 'Create Prop Account';
+            propTitle.value = '';
+            propTradingBalance.value = '';
+            propChallengeFee.value = '';
+            propProfitTargetPhase1.value = '';
+            propProfitTargetPhase2.value = '';
+            propDailyLossLimit.value = '';
+            propMaxTrailingDrawdown.value = '';
+            propMinTradingDays.value = '';
+            propLeverageMax.value = '';
+            propReEntryAllowed.value = '';
+            propChallengeFee.disabled = false; // Enable fee input for prop accounts
+            modalError.textContent = '';
+            modal.style.display = 'flex';
 
-        document.getElementById('savePropBtn').onclick = async () => {
-            try {
-                const title = propTitle.value;
-                const tradingBalance = parseFloat(propTradingBalance.value);
-                const challengeFee = parseFloat(propChallengeFee.value);
-                const profitTargetPhase1 = propProfitTargetPhase1.value ? parseFloat(propProfitTargetPhase1.value) : undefined;
-                const profitTargetPhase2 = propProfitTargetPhase2.value ? parseFloat(propProfitTargetPhase2.value) : undefined;
-                const dailyLossLimit = propDailyLossLimit.value ? parseFloat(propDailyLossLimit.value) : undefined;
-                const maxTrailingDrawdown = propMaxTrailingDrawdown.value ? parseFloat(propMaxTrailingDrawdown.value) : undefined;
-                const minTradingDays = propMinTradingDays.value ? parseInt(propMinTradingDays.value) : undefined;
-                const leverageMax = propLeverageMax.value || undefined;
-                const reEntryAllowed = propReEntryAllowed.value || undefined;
+            document.getElementById('saveCreateBtn').onclick = async () => {
+                try {
+                    const title = propTitle.value;
+                    const tradingBalance = parseFloat(propTradingBalance.value);
+                    const challengeFee = parseFloat(propChallengeFee.value);
+                    const profitTargetPhase1 = propProfitTargetPhase1.value ? parseFloat(propProfitTargetPhase1.value) : undefined;
+                    const profitTargetPhase2 = propProfitTargetPhase2.value ? parseFloat(propProfitTargetPhase2.value) : undefined;
+                    const dailyLossLimit = propDailyLossLimit.value ? parseFloat(propDailyLossLimit.value) : undefined;
+                    const maxTrailingDrawdown = propMaxTrailingDrawdown.value ? parseFloat(propMaxTrailingDrawdown.value) : undefined;
+                    const minTradingDays = propMinTradingDays.value ? parseInt(propMinTradingDays.value) : undefined;
+                    const leverageMax = propLeverageMax.value || undefined;
+                    const reEntryAllowed = propReEntryAllowed.value || undefined;
 
-                await client.createPropAccount(
-                    title, tradingBalance, challengeFee, profitTargetPhase1, profitTargetPhase2,
-                    dailyLossLimit, maxTrailingDrawdown, minTradingDays, leverageMax, reEntryAllowed
-                );
-                modal.style.display = 'none';
-                loadProps();
-            } catch (error) {
-                modalError.textContent = error.message || 'Error creating prop account';
-            }
-        };
-    }
+                    await client.createPropAccount(
+                        title, tradingBalance, challengeFee, profitTargetPhase1, profitTargetPhase2,
+                        dailyLossLimit, maxTrailingDrawdown, minTradingDays, leverageMax, reEntryAllowed, false
+                    );
+                    modal.style.display = 'none';
+                    loadProps();
+                } catch (error) {
+                    console.error('Error creating prop account:', error);
+                    modalError.textContent = error.message || 'Error creating prop account';
+                }
+            };
+        }
 
-    function showUpdateModal(id, title, tradingBalance, challengeFee, profitTargetPhase1, profitTargetPhase2, dailyLossLimit, maxTrailingDrawdown, minTradingDays, leverageMax, reEntryAllowed) {
-        const modal = document.getElementById('propModal');
-        const modalTitle = document.getElementById('modalTitle');
-        const propTitle = document.getElementById('propTitle');
-        const propTradingBalance = document.getElementById('propTradingBalance');
-        const propChallengeFee = document.getElementById('propChallengeFee');
-        const propProfitTargetPhase1 = document.getElementById('propProfitTargetPhase1');
-        const propProfitTargetPhase2 = document.getElementById('propProfitTargetPhase2');
-        const propDailyLossLimit = document.getElementById('propDailyLossLimit');
-        const propMaxTrailingDrawdown = document.getElementById('propMaxTrailingDrawdown');
-        const propMinTradingDays = document.getElementById('propMinTradingDays');
-        const propLeverageMax = document.getElementById('propLeverageMax');
-        const propReEntryAllowed = document.getElementById('propReEntryAllowed');
-        const modalError = document.getElementById('modalError');
+        function showDemoCreateModal() {
+            const modal = document.getElementById('createModal');
+            const modalTitle = document.getElementById('createModalTitle');
+            const propTitle = document.getElementById('createPropTitle');
+            const propTradingBalance = document.getElementById('createPropTradingBalance');
+            const propChallengeFee = document.getElementById('createPropChallengeFee');
+            const propProfitTargetPhase1 = document.getElementById('createPropProfitTargetPhase1');
+            const propProfitTargetPhase2 = document.getElementById('createPropProfitTargetPhase2');
+            const propDailyLossLimit = document.getElementById('createPropDailyLossLimit');
+            const propMaxTrailingDrawdown = document.getElementById('createPropMaxTrailingDrawdown');
+            const propMinTradingDays = document.getElementById('createPropMinTradingDays');
+            const propLeverageMax = document.getElementById('createPropLeverageMax');
+            const propReEntryAllowed = document.getElementById('createPropReEntryAllowed');
+            const modalError = document.getElementById('createModalError');
 
-        modalTitle.textContent = 'Update Prop Account';
-        propTitle.value = title;
-        propTradingBalance.value = tradingBalance;
-        propChallengeFee.value = challengeFee;
-        propProfitTargetPhase1.value = profitTargetPhase1;
-        propProfitTargetPhase2.value = profitTargetPhase2;
-        propDailyLossLimit.value = dailyLossLimit;
-        propMaxTrailingDrawdown.value = maxTrailingDrawdown;
-        propMinTradingDays.value = minTradingDays;
-        propLeverageMax.value = leverageMax;
-        propReEntryAllowed.value = reEntryAllowed;
-        modalError.textContent = '';
-        modal.style.display = 'flex';
+            modalTitle.textContent = 'Create Demo Challenge';
+            propTitle.value = '';
+            propTradingBalance.value = '';
+            propChallengeFee.value = '0';
+            propProfitTargetPhase1.value = '';
+            propProfitTargetPhase2.value = '';
+            propDailyLossLimit.value = '';
+            propMaxTrailingDrawdown.value = '';
+            propMinTradingDays.value = '';
+            propLeverageMax.value = '';
+            propReEntryAllowed.value = '';
+            propChallengeFee.disabled = true; // Disable fee input for demo challenges
+            modalError.textContent = '';
+            modal.style.display = 'flex';
 
-        document.getElementById('savePropBtn').onclick = async () => {
-            try {
-                const updatedTitle = propTitle.value;
-                const updatedTradingBalance = parseFloat(propTradingBalance.value);
-                const updatedChallengeFee = parseFloat(propChallengeFee.value);
-                const updatedProfitTargetPhase1 = propProfitTargetPhase1.value ? parseFloat(propProfitTargetPhase1.value) : undefined;
-                const updatedProfitTargetPhase2 = propProfitTargetPhase2.value ? parseFloat(propProfitTargetPhase2.value) : undefined;
-                const updatedDailyLossLimit = propDailyLossLimit.value ? parseFloat(propDailyLossLimit.value) : undefined;
-                const updatedMaxTrailingDrawdown = propMaxTrailingDrawdown.value ? parseFloat(propMaxTrailingDrawdown.value) : undefined;
-                const updatedMinTradingDays = propMinTradingDays.value ? parseInt(propMinTradingDays.value) : undefined;
-                const updatedLeverageMax = propLeverageMax.value || undefined;
-                const updatedReEntryAllowed = propReEntryAllowed.value || undefined;
+            document.getElementById('saveCreateBtn').onclick = async () => {
+                try {
+                    const title = propTitle.value;
+                    const tradingBalance = parseFloat(propTradingBalance.value);
+                    const challengeFee = 0; // Hardcode to 0 for demo
+                    const profitTargetPhase1 = propProfitTargetPhase1.value ? parseFloat(propProfitTargetPhase1.value) : undefined;
+                    const profitTargetPhase2 = propProfitTargetPhase2.value ? parseFloat(propProfitTargetPhase2.value) : undefined;
+                    const dailyLossLimit = propDailyLossLimit.value ? parseFloat(propDailyLossLimit.value) : undefined;
+                    const maxTrailingDrawdown = propMaxTrailingDrawdown.value ? parseFloat(propMaxTrailingDrawdown.value) : undefined;
+                    const minTradingDays = propMinTradingDays.value ? parseInt(propMinTradingDays.value) : undefined;
+                    const leverageMax = propLeverageMax.value || undefined;
+                    const reEntryAllowed = propReEntryAllowed.value || undefined;
 
-                await client.updatePropAccount(
-                    id, updatedTitle, updatedTradingBalance, updatedChallengeFee, updatedProfitTargetPhase1,
-                    updatedProfitTargetPhase2, updatedDailyLossLimit, updatedMaxTrailingDrawdown,
-                    updatedMinTradingDays, updatedLeverageMax, updatedReEntryAllowed
-                );
-                modal.style.display = 'none';
-                loadProps();
-            } catch (error) {
-                modalError.textContent = error.message || 'Error updating prop account';
-            }
-        };
-    }
+                    await client.createPropAccount(
+                        title, tradingBalance, challengeFee, profitTargetPhase1, profitTargetPhase2,
+                        dailyLossLimit, maxTrailingDrawdown, minTradingDays, leverageMax, reEntryAllowed, true
+                    );
+                    modal.style.display = 'none';
+                    loadProps();
+                } catch (error) {
+                    console.error('Error creating demo challenge:', error);
+                    modalError.textContent = error.message || 'Error creating demo challenge';
+                }
+            };
+        }
 
-    document.getElementById('createPropBtn').addEventListener('click', showCreateModal);
-    document.getElementById('cancelPropBtn').addEventListener('click', () => {
-        document.getElementById('propModal').style.display = 'none';
-    });
+        function showUpdateModal(id, title, tradingBalance, challengeFee, profitTargetPhase1, profitTargetPhase2, dailyLossLimit, maxTrailingDrawdown, minTradingDays, leverageMax, reEntryAllowed) {
+            const modal = document.getElementById('updateModal');
+            const modalTitle = document.getElementById('updateModalTitle');
+            const propTitle = document.getElementById('updatePropTitle');
+            const propTradingBalance = document.getElementById('updatePropTradingBalance');
+            const propChallengeFee = document.getElementById('updatePropChallengeFee');
+            const propProfitTargetPhase1 = document.getElementById('updatePropProfitTargetPhase1');
+            const propProfitTargetPhase2 = document.getElementById('updatePropProfitTargetPhase2');
+            const propDailyLossLimit = document.getElementById('updatePropDailyLossLimit');
+            const propMaxTrailingDrawdown = document.getElementById('updatePropMaxTrailingDrawdown');
+            const propMinTradingDays = document.getElementById('updatePropMinTradingDays');
+            const propLeverageMax = document.getElementById('updatePropLeverageMax');
+            const propReEntryAllowed = document.getElementById('updatePropReEntryAllowed');
+            const modalError = document.getElementById('updateModalError');
 
-    logoutLink.addEventListener('click', () => {
-        localStorage.clear();
-        window.location.href = 'clientlogin.html';
-    });
+            modalTitle.textContent = 'Update Prop Account';
+            propTitle.value = title;
+            propTradingBalance.value = tradingBalance;
+            propChallengeFee.value = challengeFee;
+            propProfitTargetPhase1.value = profitTargetPhase1;
+            propProfitTargetPhase2.value = profitTargetPhase2;
+            propDailyLossLimit.value = dailyLossLimit;
+            propMaxTrailingDrawdown.value = maxTrailingDrawdown;
+            propMinTradingDays.value = minTradingDays;
+            propLeverageMax.value = leverageMax;
+            propReEntryAllowed.value = reEntryAllowed;
+            modalError.textContent = '';
+            modal.style.display = 'flex';
 
-    // Load data on page load
-    loadOverview();
-    loadTraders();
-    loadTrades();
-    loadUsers();
-    loadProps();
+            document.getElementById('saveUpdateBtn').onclick = async () => {
+                try {
+                    const updatedTitle = propTitle.value;
+                    const updatedTradingBalance = parseFloat(propTradingBalance.value);
+                    const updatedChallengeFee = parseFloat(propChallengeFee.value);
+                    const updatedProfitTargetPhase1 = propProfitTargetPhase1.value ? parseFloat(propProfitTargetPhase1.value) : undefined;
+                    const updatedProfitTargetPhase2 = propProfitTargetPhase2.value ? parseFloat(propProfitTargetPhase2.value) : undefined;
+                    const updatedDailyLossLimit = propDailyLossLimit.value ? parseFloat(propDailyLossLimit.value) : undefined;
+                    const updatedMaxTrailingDrawdown = propMaxTrailingDrawdown.value ? parseFloat(propMaxTrailingDrawdown.value) : undefined;
+                    const updatedMinTradingDays = propMinTradingDays.value ? parseInt(propMinTradingDays.value) : undefined;
+                    const updatedLeverageMax = propLeverageMax.value || undefined;
+                    const updatedReEntryAllowed = propReEntryAllowed.value || undefined;
+
+                    await client.updatePropAccount(
+                        id, updatedTitle, updatedTradingBalance, updatedChallengeFee, updatedProfitTargetPhase1,
+                        updatedProfitTargetPhase2, updatedDailyLossLimit, updatedMaxTrailingDrawdown,
+                        updatedMinTradingDays, updatedLeverageMax, updatedReEntryAllowed
+                    );
+                    modal.style.display = 'none';
+                    loadProps();
+                } catch (error) {
+                    console.error('Error updating prop account:', error);
+                    modalError.textContent = error.message || 'Error updating prop account';
+                }
+            };
+        }
+
+        // Event listeners for modals
+        document.getElementById('createPropBtn').addEventListener('click', showPropCreateModal);
+        document.getElementById('createDemoPropBtn').addEventListener('click', showDemoCreateModal);
+        document.getElementById('cancelCreateBtn').addEventListener('click', () => {
+            document.getElementById('createModal').style.display = 'none';
+        });
+        document.getElementById('cancelUpdateBtn').addEventListener('click', () => {
+            document.getElementById('updateModal').style.display = 'none';
+        });
+        
+
+        logoutLink.addEventListener('click', () => {
+            localStorage.clear();
+            window.location.href = 'clientlogin.html';
+        });
+
+        // Load data on page load
+        loadOverview();
+        loadTraders();
+        loadTrades();
+        loadUsers();
+        loadProps();
     </script>
 </body>
 </html>
